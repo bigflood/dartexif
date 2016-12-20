@@ -1,10 +1,8 @@
-import 'package:dartexif/dartexif.dart';
-import 'package:dartexif/exifheader.dart' hide DEFAULT_STOP_TAG;
 import 'dart:io';
+import 'exif.dart';
 
 printExifOf(String path, printFunc(String),
-    {stop_tag = null, details = true, strict = false, debug = false}) async {
-  stop_tag = stop_tag ?? DEFAULT_STOP_TAG;
+    {String stop_tag = null, bool details = true, bool strict = false, bool debug = false}) async {
 
   Map<String, IfdTag> data = await readExifFromFile(new File(path),
       stop_tag: stop_tag, details: true, strict: false, debug: false);
@@ -26,15 +24,11 @@ printExifOf(String path, printFunc(String),
   List<String> tag_keys = data.keys.toList();
   tag_keys.sort();
 
-  for (String i in tag_keys) {
-    try {
-      printFunc(i +
-          ' (' +
-          FIELD_TYPES[data[i].field_type][2] +
-          '): ' +
-          data[i].printable);
-    } catch (e) {
-      printFunc(i + " : " + data[i].toString());
-    }
+  for (String key in tag_keys) {
+    // try {
+      printFunc("$key (${data[key].tagType}): ${data[key]}");
+    // } catch (e) {
+    //   printFunc("$i : ${data[i]}");
+    // }
   }
 }

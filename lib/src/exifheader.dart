@@ -10,6 +10,7 @@ import 'makernote_fujifilm.dart';
 import 'makernote_nikon.dart';
 import 'makernote_olympus.dart';
 import 'tags_info.dart';
+import 'exif_types.dart';
 
 const String DEFAULT_STOP_TAG = 'UNDEF';
 
@@ -38,7 +39,7 @@ const List<int> IGNORE_TAGS = const [
 String chr(int v) => new String.fromCharCode(v);
 
 // Eases dealing with tags.
-class IfdTag {
+class IfdTagImpl extends IfdTag {
   // printable version of data
   String printable;
   // tag ID number
@@ -52,7 +53,7 @@ class IfdTag {
   // either a string or array of data items
   var values;
 
-  IfdTag(
+  IfdTagImpl(
       {this.printable: '',
       this.tag: -1,
       this.field_type: 0,
@@ -63,6 +64,11 @@ class IfdTag {
   @override
   String toString() {
     return printable;
+  }
+
+  @override
+  String get tagType {
+    return FIELD_TYPES[field_type][2];
   }
 
   String get repr {
@@ -164,7 +170,9 @@ class ExifHeader {
   void dump_ifd(int ifd, ifd_name,
       {Map<int, MakerTag> tag_dict: null,
       bool relative: false,
-      String stop_tag: DEFAULT_STOP_TAG}) {
+      String stop_tag}) {
+    stop_tag = stop_tag ?? DEFAULT_STOP_TAG;
+
     if (tag_dict == null) {
       tag_dict = standard_tags.TAGS;
     }
@@ -347,7 +355,7 @@ class ExifHeader {
 
         // print('** ifd=$ifd_name tag=$tag_name ($tag) field_type=$field_type, type_length=$type_length, count=$count');
 
-        this.tags[ifd_name + ' ' + tag_name] = new IfdTag(
+        this.tags[ifd_name + ' ' + tag_name] = new IfdTagImpl(
             printable: printable,
             tag: tag,
             field_type: field_type,
@@ -369,7 +377,7 @@ class ExifHeader {
   // Take advantage of the pre-existing layout in the thumbnail IFD as
   // much as possible
   void extract_tiff_thumbnail(thumb_ifd) {
-    IfdTag thumb = this.tags['Thumbnail Compression'];
+    IfdTagImpl thumb = this.tags['Thumbnail Compression'];
     if (thumb == null || thumb.printable != 'Uncompressed TIFF') {
       return;
     }
@@ -441,17 +449,17 @@ class ExifHeader {
       tiff.addAll(this.file.readSync(old_counts[i]));
     }
 
-    this.tags['TIFFThumbnail'] = new IfdTag(values: tiff);
+    this.tags['TIFFThumbnail'] = new IfdTagImpl(values: tiff);
   }
 
   // Extract JPEG thumbnail.
   // (Thankfully the JPEG data is stored as a unit.)
   extract_jpeg_thumbnail() {
-    IfdTag thumb_offset = this.tags['Thumbnail JPEGInterchangeFormat'];
+    IfdTagImpl thumb_offset = this.tags['Thumbnail JPEGInterchangeFormat'];
     if (thumb_offset != null) {
       this.file.setPositionSync(this.offset + thumb_offset.values[0]);
       int size = this.tags['Thumbnail JPEGInterchangeFormatLength'].values[0];
-      this.tags['JPEGThumbnail'] = new IfdTag(values: this.file.readSync(size));
+      this.tags['JPEGThumbnail'] = new IfdTagImpl(values: this.file.readSync(size));
     }
 
     // Sometimes in a TIFF file, a JPEG thumbnail is hidden in the MakerNote
@@ -461,7 +469,7 @@ class ExifHeader {
       if (thumb_offset != null) {
         this.file.setPositionSync(this.offset + thumb_offset.values[0]);
         this.tags['JPEGThumbnail'] =
-            new IfdTag(values: this.file.readSync(thumb_offset.field_length));
+            new IfdTagImpl(values: this.file.readSync(thumb_offset.field_length));
       }
     }
   }
@@ -485,7 +493,7 @@ class ExifHeader {
   // the offsets should be from the header at the start of all the EXIF info,
   // or from the header at the start of the makernote.
   void decode_maker_note() {
-    IfdTag note = this.tags['EXIF MakerNote'];
+    IfdTagImpl note = this.tags['EXIF MakerNote'];
 
     // Some apps use MakerNote tags but do not use a format for which we
     // have a description, so just do a raw dump for these.
@@ -590,7 +598,7 @@ class ExifHeader {
       }
 
       if (this.tags.containsKey(makernote_canon.CAMERA_INFO_TAG_NAME)) {
-        IfdTag tag = this.tags[makernote_canon.CAMERA_INFO_TAG_NAME];
+        IfdTagImpl tag = this.tags[makernote_canon.CAMERA_INFO_TAG_NAME];
         //print('Canon CameraInfo');
         this._canon_decode_camera_info(tag);
         this.tags.remove(makernote_canon.CAMERA_INFO_TAG_NAME);
@@ -620,13 +628,13 @@ class ExifHeader {
 
       // it's not a real IFD Tag but we fake one to make everybody
       // happy. this will have a "proprietary" type
-      this.tags['MakerNote ' + name] = new IfdTag(printable: val);
+      this.tags['MakerNote ' + name] = new IfdTagImpl(printable: val);
     }
   }
 
   // Decode the variable length encoded camera info section.
-  void _canon_decode_camera_info(IfdTag camera_info_tag) {
-    IfdTag modelTag = this.tags['Image Model'];
+  void _canon_decode_camera_info(IfdTagImpl camera_info_tag) {
+    IfdTagImpl modelTag = this.tags['Image Model'];
     if (modelTag == null) {
       return;
     }
@@ -680,7 +688,7 @@ class ExifHeader {
       //print(" $tag_name $tag_value");
 
       this.tags['MakerNote ' + tag_name] =
-          new IfdTag(printable: tag_value.toString());
+          new IfdTagImpl(printable: tag_value.toString());
     }
   }
 
@@ -700,6 +708,6 @@ class ExifHeader {
 
     // this.tags['Image ApplicationNotes'] = new IfdTag('\n'.join(cleaned), null, 1, null, null, null);
     this.tags['Image ApplicationNotes'] =
-        new IfdTag(printable: xmp_string, field_type: 1);
+        new IfdTagImpl(printable: xmp_string, field_type: 1);
   }
 }

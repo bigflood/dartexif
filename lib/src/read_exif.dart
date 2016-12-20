@@ -3,8 +3,8 @@ import 'dart:async';
 import 'exifheader.dart';
 import 'util.dart';
 import 'linereader.dart';
+import 'exif_types.dart';
 
-const DEFAULT_STOP_TAG = 'UNDEF';
 
 int increment_base(data, base) {
   return (data[base + 2]) * 256 + (data[base + 3]) + 2;
@@ -14,12 +14,11 @@ int increment_base(data, base) {
 // This is the function that has to deal with all the arbitrary nasty bits
 // of the EXIF standard.
 Future<Map<String, IfdTag>> readExifFromFile(File file,
-    {stop_tag = DEFAULT_STOP_TAG,
-    details = true,
-    strict = false,
-    debug = false,
-    truncate_tags = true}) async {
-  var eq = list_eq;
+    {String stop_tag,
+    bool details = true,
+    bool strict = false,
+    bool debug = false,
+    bool truncate_tags = true}) async {
 
   RandomAccessFile f = await file.open();
 
@@ -220,7 +219,7 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
     ctr += 1;
   }
   // EXIF IFD
-  IfdTag exif_off = hdr.tags['Image ExifOffset'];
+  IfdTagImpl exif_off = hdr.tags['Image ExifOffset'];
   if (exif_off != null && ![1,2,5,6,10].contains(exif_off.field_type)) {
     // print('** Exif SubIFD at offset ${exif_off.values[0]}:');
     hdr.dump_ifd(exif_off.values[0], 'EXIF', stop_tag: stop_tag);
