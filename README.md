@@ -8,21 +8,21 @@ Dart port of ianaré sévi's EXIF library: <https://github.com/ianare/exif-py>.
 ### Depend on it
 Add this to your package's pubspec.yaml file:
 
-'''
+```
 dependencies:
   exif: 
-'''
+```
 
 ### Install it
 You can install packages from the command line:
-'''
+```
 $ pub get
-'''
+```
 
 ## Usage
 
 Simple example:
-'''
+```
 printExifOf(String path) async {
 
   Map<String, IfdTag> data = await readExifFromFile(new File(path));
@@ -46,4 +46,4 @@ printExifOf(String path) async {
   }
   
 }
-'''
+```
