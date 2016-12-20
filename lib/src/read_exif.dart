@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:async';
+
 import 'exifheader.dart';
 import 'util.dart';
 import 'linereader.dart';
 import 'exif_types.dart';
 
 
-int increment_base(data, base) {
+int _increment_base(data, base) {
   return (data[base + 2]) * 256 + (data[base + 3]) + 2;
 }
 
@@ -91,7 +92,7 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
           base -= 2;
           break;
         }
-        increment = increment_base(data, base);
+        increment = _increment_base(data, base);
         // print("** Increment base by $increment");
         base += increment;
       } else if (list_range_eq(data, base, base + 2, [0xFF, 0xE0])) {
@@ -99,7 +100,7 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
         // print("**  APP0 at base $base");
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("**  Code: %s", [data.sublist(base + 4, base + 8)]);
-        increment = increment_base(data, base);
+        increment = _increment_base(data, base);
         // print("** Increment base by $increment");
         base += increment;
       } else if (list_range_eq(data, base, base + 2, [0xFF, 0xE2])) {
@@ -107,7 +108,7 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
         // printf("**  APP2 at base 0x%X", [base]);
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("** Code: %s", [data.sublist(base + 4,base + 8)]);
-        increment = increment_base(data, base);
+        increment = _increment_base(data, base);
         // print("** Increment base by $increment");
         base += increment;
       } else if (list_range_eq(data, base, base + 2, [0xFF, 0xEE])) {
@@ -115,7 +116,7 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
         // printf("**  APP14 Adobe segment at base 0x%X", [base]);
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("**  Code: %s", [data.sublist(base + 4,base + 8)]);
-        increment = increment_base(data, base);
+        increment = _increment_base(data, base);
         // print("** Increment base by $increment");
         base += increment;
         // print("**  There is useful EXIF-like data here, but we have no parser for it.");
@@ -128,7 +129,7 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
         // printf("**  Got 0x%X 0x%X and %s instead", [data[base], data[base + 1], data.sublist(4 + base,10 + base)]);
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("**  Code: %s", [data.sublist(base + 4,base + 8)]);
-        increment = increment_base(data, base);
+        increment = _increment_base(data, base);
         // print("** Increment base by $increment");
         base += increment;
       } else if (list_range_eq(data, base, base + 2, [0xFF, 0xEC])) {
@@ -137,13 +138,13 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
         // printf("**  Got 0x%X and 0x%X instead", [data[base], data[base + 1]]);
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("** Code: %s", [data.sublist(base + 4,base + 8)]);
-        increment = increment_base(data, base);
+        increment = _increment_base(data, base);
         // print("** Increment base by $increment");
         base += increment;
         // print("**  There is useful EXIF-like data here (quality, comment, copyright), but we have no parser for it.");
       } else {
         try {
-          increment = increment_base(data, base);
+          increment = _increment_base(data, base);
           // printf("**  Got 0x%X and 0x%X instead", [data[base], data[base + 1]]);
         } on RangeError {
           throw new FormatException("Unexpected/unhandled segment type or file content.");

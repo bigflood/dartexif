@@ -1,6 +1,6 @@
 import 'package:args/args.dart';
 import 'dart:io';
-import 'package:dartexif/exif_cmd.dart';
+import 'package:exif/exif.dart';
 
 // Show command line usage.
 usage(exit_status) {

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'exif.dart';
+import '../exif.dart';
 
 printExifOf(String path, printFunc(String),
     {String stop_tag = null, bool details = true, bool strict = false, bool debug = false}) async {
