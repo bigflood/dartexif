@@ -36,40 +36,53 @@ const List<int> IGNORE_TAGS = const [
   0x02BC, // XPM
 ];
 
-String chr(int v) => new String.fromCharCode(v);
 
 // Eases dealing with tags.
 class IfdTagImpl extends IfdTag {
+
   // printable version of data
-  String printable;
+  String _printable;
+
+  @override
+  String get printable => _printable;
+
   // tag ID number
-  int tag;
+  int _tag;
+  @override
+  int get tag => _tag;
+
   // field type as index into FIELD_TYPES
   int field_type;
+
+  @override
+  String get tagType => FIELD_TYPES[field_type][2];
+
   // offset of start of field in bytes from beginning of IFD
   int field_offset;
+
   // length of data field in bytes
   int field_length;
-  // either a string or array of data items
-  var values;
+
+  // list of data items (int(char or number) or Ratio)
+  List _values;
+
+  @override
+  List get values => _values;
 
   IfdTagImpl(
-      {this.printable: '',
-      this.tag: -1,
+      {String printable: '',
+      int tag: -1,
       this.field_type: 0,
-      this.values: null,
+      List values: null,
       this.field_offset: 0,
-      this.field_length: 0}) {}
-
-  @override
-  String toString() {
-    return printable;
+      this.field_length: 0}) {
+        _printable = printable;
+        _tag = tag;
+        _values = values;
   }
 
   @override
-  String get tagType {
-    return FIELD_TYPES[field_type][2];
-  }
+  String toString() => printable;
 
   String get repr {
     return sprintf('(0x%04X) %s=%s @ %d',

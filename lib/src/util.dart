@@ -54,37 +54,3 @@ int s2n_littleEndian(List<int> s) {
 
   return x;
 }
-
-// Ratio object that eventually will be able to reduce itself to lowest
-// common denominator for printing.
-class Ratio {
-  int num, den;
-
-  Ratio(this.num, this.den) {}
-
-  @override
-  String toString() {
-    reduce();
-    if (den == 1) {
-      return this.num.toString();
-    }
-
-    return sprintf('%d/%d', [this.num, this.den]);
-  }
-
-  static int _gcd(a, b) {
-    if (b == 0) {
-      return a;
-    } else {
-      return _gcd(b, a % b);
-    }
-  }
-
-  void reduce() {
-    int div = _gcd(this.num, this.den);
-    if (div > 1) {
-      this.num = this.num ~/ div;
-      this.den = this.den ~/ div;
-    }
-  }
-}
