@@ -1,7 +1,7 @@
 name: exif
 version: 0.1.1
 author: Taesu Pyo <pyotaesu@gmail.com>
-description: Library of exif.
+description: Decode Exif data from tiff and jpeg files.
 homepage: https://www.github.com/bigflood/dartexif
 environment:
   sdk: '>=1.16.0-dev.5.0 <2.0.0'
