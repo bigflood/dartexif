@@ -5,6 +5,7 @@ import 'exifheader.dart';
 import 'util.dart';
 import 'linereader.dart';
 import 'exif_types.dart';
+import 'file_interface.dart';
 
 
 int _increment_base(data, base) {
@@ -23,6 +24,49 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
 
   RandomAccessFile f = await file.open();
 
+  var r = await readExifFromFileReader(
+    new FileReader.fromFile(f),
+    stop_tag: stop_tag,
+    details: details,
+    strict: strict,
+    debug: debug,
+    truncate_tags: truncate_tags
+  );
+
+  await f.close();
+
+  return r;
+}
+
+Future<Map<String, IfdTag>> readExifFromBytes(List<int> bytes,
+    {String stop_tag,
+    bool details = true,
+    bool strict = false,
+    bool debug = false,
+    bool truncate_tags = true}) async {
+
+  var r = await readExifFromFileReader(
+    new FileReader.fromBytes(bytes),
+    stop_tag: stop_tag,
+    details: details,
+    strict: strict,
+    debug: debug,
+    truncate_tags: truncate_tags
+  );
+  
+  return r;
+}
+
+// Process an image file (expects an open file object).
+// This is the function that has to deal with all the arbitrary nasty bits
+// of the EXIF standard.
+Map<String, IfdTag> readExifFromFileReader(FileReader f,
+    {String stop_tag,
+    bool details = true,
+    bool strict = false,
+    bool debug = false,
+    bool truncate_tags = true}) {
+
   // by default do not fake an EXIF beginning
   bool fake_exif = false;
   int endian;
@@ -30,13 +74,13 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
   int increment;
 
   // determine whether it's a JPEG or TIFF
-  List<int> data = await f.read(12);
+  List<int> data = f.readSync(12);
   if (list_in(data.sublist(0, 4), ['II*\x00'.codeUnits, 'MM\x00*'.codeUnits])) {
     // it's a TIFF file
     // print("TIFF format recognized in data[0:4]");
-    await f.setPosition(0);
-    endian = await f.readByte();
-    await f.read(1);
+    f.setPositionSync(0);
+    endian = f.readByteSync();
+    f.readSync(1);
     offset = 0;
   } else if (list_range_eq(data, 0, 2, '\xFF\xD8'.codeUnits)) {
     // it's a JPEG file
@@ -52,11 +96,11 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
         ])) {
       int length = data[4] * 256 + data[5];
       // printf("** Length offset is %d", [length]);
-      await f.read(length - 8);
+      f.readSync(length - 8);
       // fake an EXIF beginning of file
       // I don't think this is used. --gd
       data = [0xFF, 0x00];
-      data.addAll(await f.read(10));
+      data.addAll(f.readSync(10));
       fake_exif = true;
       if (base > 2) {
         // print("** Added to base");
@@ -69,7 +113,7 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
     }
 
     // Big ugly patch to deal with APP2 (or other) data coming before APP1
-    await f.setPosition(0);
+    f.setPositionSync(0);
     // in theory, this could be insufficient since 64K is the maximum size--gd
     // print('** f.position=${f.positionSync()}, base=$base');
     data = f.readSync(base + 4000);
@@ -156,27 +200,27 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
       }
     }
 
-    await f.setPosition(base + 12);
+    f.setPositionSync(base + 12);
     if (data[2 + base] == 0xFF &&
         list_range_eq(data, 6 + base, 10 + base, 'Exif'.codeUnits)) {
       // detected EXIF header
-      offset = await f.position();
-      endian = await f.readByte();
+      offset = f.positionSync();
+      endian = f.readByteSync();
       //HACK TEST:  endian = 'M'
     } else if (data[2 + base] == 0xFF &&
         list_range_eq(data, 6 + base, 10 + base + 1, 'Ducky'.codeUnits)) {
       // detected Ducky header.
       // printf("** EXIF-like header (normally 0xFF and code): 0x%X and %s",
       //              [data[2 + base], data.sublist(6 + base,10 + base + 1)]);
-      offset = await f.position();
-      endian = await f.readByte();
+      offset = f.positionSync();
+      endian = f.readByteSync();
     } else if (data[2 + base] == 0xFF &&
         list_range_eq(data, 6 + base, 10 + base + 1, 'Adobe'.codeUnits)) {
       // detected APP14 (Adobe);
       // printf("** EXIF-like header (normally 0xFF and code): 0x%X and %s",
       //              [data[2 + base], data.sublist(6 + base,10 + base + 1)]);
-      offset = await f.position();
-      endian = await f.readByte();
+      offset = f.positionSync();
+      endian = f.readByteSync();
     } else {
       // no EXIF information
       // print("** No EXIF header expected data[2+base]==0xFF and data[6+base:10+base]===Exif (or Duck)");
@@ -255,7 +299,7 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
       bool xml_finished = false;
       LineReader reader = new LineReader(f);
       while (true) {
-        String line = await reader.readline();
+        String line = reader.readline();
         if (line.isEmpty) break;
 
         int open_tag = line.indexOf('<x:xmpmeta');

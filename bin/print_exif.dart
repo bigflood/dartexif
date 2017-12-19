@@ -4,7 +4,7 @@ import 'package:exif/exif.dart';
 
 // Show command line usage.
 usage(exit_status) {
-  var msg = ('Usage: EXIF.py [OPTIONS] file1 [file2 ...]\n'
+  var msg = ('Usage: EXIF [OPTIONS] file1 [file2 ...]\n'
           'Extract EXIF information from digital camera image files.\n\nOptions:\n'
           '-h --help               Display usage information and exit.\n'
           '-q --quick              Do not process MakerNotes.\n'
@@ -73,6 +73,9 @@ main(List<String> arguments) async {
 
 printExifOf(String path, printFunc(String),
     {String stop_tag = null, bool details = true, bool strict = false, bool debug = false}) async {
+
+  // Map<String, IfdTag> data = await readExifFromBytes(await new File(path).readAsBytes(),
+  //     stop_tag: stop_tag, details: true, strict: false, debug: false);
 
   Map<String, IfdTag> data = await readExifFromFile(new File(path),
       stop_tag: stop_tag, details: true, strict: false, debug: false);

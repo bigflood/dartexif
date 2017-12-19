@@ -1,9 +1,8 @@
-import 'dart:io';
-import 'dart:async';
 import 'dart:convert';
+import 'file_interface.dart';
 
 class LineReader {
-  RandomAccessFile file;
+  FileReader file;
   List<int> buffer;
   bool endoffile = false;
 
@@ -23,7 +22,7 @@ class LineReader {
     return s;
   }
 
-  Future<String> readline() async {
+  String readline() {
     if (buffer == null) {
       buffer = [];
     }
@@ -38,7 +37,7 @@ class LineReader {
     }
 
     while (true) {
-      List<int> r = await file.read(1024 * 10);
+      List<int> r = file.readSync(1024 * 10);
 
       if (r == null || r.isEmpty) {
         endoffile = true;

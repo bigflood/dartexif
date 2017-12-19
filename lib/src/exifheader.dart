@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:sprintf/sprintf.dart' show sprintf;
 
 import 'util.dart';
@@ -11,6 +10,7 @@ import 'makernote_nikon.dart';
 import 'makernote_olympus.dart';
 import 'tags_info.dart';
 import 'exif_types.dart';
+import 'file_interface.dart';
 
 const String DEFAULT_STOP_TAG = 'UNDEF';
 
@@ -97,7 +97,7 @@ class IfdTagImpl extends IfdTag {
 
 // Handle an EXIF header.
 class ExifHeader {
-  RandomAccessFile file;
+  FileReader file;
   var endian;
   int offset;
   bool fake_exif;
