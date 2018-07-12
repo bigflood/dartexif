@@ -6,7 +6,7 @@ homepage: https://www.github.com/bigflood/dartexif
 environment:
   sdk: '>=1.16.0-dev.5.0 <2.0.0'
 dependencies:
-  args: '^0.13.7'
+  args: '>=0.13.7'
   collection: '^1.0.0'
   convert: '>=1.0.0 <3.0.0'
   sprintf: ">=1.0.8 <2.0.0"
