@@ -329,7 +329,7 @@ class ExifHeader {
         String printable = '';
         // now 'values' is either a string or an array
         if (field_type == 2) {
-          printable = new String.fromCharCodes(values);
+          printable = new String.fromCharCodes(values.cast<int>());
         } else if (count == 1 && field_type != 2) {
           printable = values[0].toString();
         } else if (count > 50 && values.length > 20) {
@@ -348,7 +348,7 @@ class ExifHeader {
           // optional 2nd tag element is present
           if (tag_entry.func != null) {
             // call mapping function
-            printable = tag_entry.func(values);
+            printable = tag_entry.func(values.cast<int>());
           } else if (tag_entry.tags != null) {
             try {
               // print('** ${tag_entry.tags.name} SubIFD at offset ${values[0]}:');
