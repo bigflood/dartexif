@@ -327,8 +327,8 @@ class ExifHeader {
         String printable = '';
         // now 'values' is either a string or an array
         if (field_type == 2) {
-          printable = new String.fromCharCodes(
-              values.where((v) => v.runtimeType == int).map((v) => v as int));
+          printable =
+              new String.fromCharCodes(values.whereType<int>().toList());
         } else if (count == 1 && field_type != 2) {
           printable = values[0].toString();
         } else if (count > 50 && values.length > 20) {
