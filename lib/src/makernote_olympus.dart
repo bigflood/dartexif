@@ -32,8 +32,10 @@ class makernote_olympus extends tags_base {
     if (v == null || v.isEmpty) {
       return '';
     }
-    
-    if (v == null || v.length < 3 || (!mode1.containsKey(v[0]) || !mode2.containsKey(v[2]))) {
+
+    if (v == null ||
+        v.length < 3 ||
+        (!mode1.containsKey(v[0]) || !mode2.containsKey(v[2]))) {
       return v.toString();
     }
 

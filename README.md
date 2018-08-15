@@ -53,7 +53,7 @@ Read from bytes:
 ```
 printExifOf(String path) async {
 
-  Map<String, IfdTag> data = await readExifFromBytes(await new File(path).readAsBytes());
+  Map<String, IfdTag> data = readExifFromBytes(await new File(path).readAsBytes());
 
   if (data == null || data.isEmpty) {
     printFunc("No EXIF information found\n");

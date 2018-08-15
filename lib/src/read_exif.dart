@@ -7,7 +7,6 @@ import 'linereader.dart';
 import 'exif_types.dart';
 import 'file_interface.dart';
 
-
 int _increment_base(data, base) {
   return (data[base + 2]) * 256 + (data[base + 3]) + 2;
 }
@@ -21,17 +20,14 @@ Future<Map<String, IfdTag>> readExifFromFile(File file,
     bool strict = false,
     bool debug = false,
     bool truncate_tags = true}) async {
-
   RandomAccessFile f = await file.open();
 
-  var r = await readExifFromFileReader(
-    new FileReader.fromFile(f),
-    stop_tag: stop_tag,
-    details: details,
-    strict: strict,
-    debug: debug,
-    truncate_tags: truncate_tags
-  );
+  var r = await readExifFromFileReader(new FileReader.fromFile(f),
+      stop_tag: stop_tag,
+      details: details,
+      strict: strict,
+      debug: debug,
+      truncate_tags: truncate_tags);
 
   await f.close();
 
@@ -44,16 +40,13 @@ Future<Map<String, IfdTag>> readExifFromBytes(List<int> bytes,
     bool strict = false,
     bool debug = false,
     bool truncate_tags = true}) async {
+  var r = await readExifFromFileReader(new FileReader.fromBytes(bytes),
+      stop_tag: stop_tag,
+      details: details,
+      strict: strict,
+      debug: debug,
+      truncate_tags: truncate_tags);
 
-  var r = await readExifFromFileReader(
-    new FileReader.fromBytes(bytes),
-    stop_tag: stop_tag,
-    details: details,
-    strict: strict,
-    debug: debug,
-    truncate_tags: truncate_tags
-  );
-  
   return r;
 }
 
@@ -66,7 +59,6 @@ Map<String, IfdTag> readExifFromFileReader(FileReader f,
     bool strict = false,
     bool debug = false,
     bool truncate_tags = true}) {
-
   // by default do not fake an EXIF beginning
   bool fake_exif = false;
   int endian;
@@ -191,8 +183,8 @@ Map<String, IfdTag> readExifFromFileReader(FileReader f,
           increment = _increment_base(data, base);
           // printf("**  Got 0x%X and 0x%X instead", [data[base], data[base + 1]]);
         } on RangeError {
-          throw new FormatException("Unexpected/unhandled segment type or file content.");
-          // return {};
+          // throw new FormatException("Unexpected/unhandled segment type or file content.");
+          return {};
         }
 
         // print("** Increment base by $increment");
@@ -230,7 +222,7 @@ Map<String, IfdTag> readExifFromFileReader(FileReader f,
     }
   } else {
     // file format not recognized
-    print("File format not recognized.");
+    // print("File format not recognized.");
     return {};
   }
 
@@ -265,7 +257,7 @@ Map<String, IfdTag> readExifFromFileReader(FileReader f,
   }
   // EXIF IFD
   IfdTagImpl exif_off = hdr.tags['Image ExifOffset'];
-  if (exif_off != null && ![1,2,5,6,10].contains(exif_off.field_type)) {
+  if (exif_off != null && ![1, 2, 5, 6, 10].contains(exif_off.field_type)) {
     // print('** Exif SubIFD at offset ${exif_off.values[0]}:');
     hdr.dump_ifd(exif_off.values[0], 'EXIF', stop_tag: stop_tag);
   }

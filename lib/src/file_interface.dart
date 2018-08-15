@@ -20,7 +20,7 @@ class _RandomAccessFileReader implements FileReader {
 
   _RandomAccessFileReader(RandomAccessFile file) {
     this.file = file;
-  }  
+  }
 
   @override
   int positionSync() {
@@ -43,14 +43,13 @@ class _RandomAccessFileReader implements FileReader {
   }
 }
 
-
 class _BytesReader implements FileReader {
   List<int> bytes;
   int readPos = 0;
 
   _BytesReader(List<int> bytes) {
     this.bytes = bytes;
-  }  
+  }
 
   @override
   int positionSync() {
@@ -64,8 +63,13 @@ class _BytesReader implements FileReader {
 
   @override
   List<int> readSync(int n) {
-    var r = bytes.sublist(readPos, readPos + n);
-    readPos += n;
+    var start = readPos;
+    var end = readPos + n;
+    if (end > bytes.length) {
+      end = bytes.length;
+    }
+    var r = bytes.sublist(start, end);
+    readPos += end - start;
     return r;
   }
 

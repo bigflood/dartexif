@@ -1,7 +1,4 @@
-
-
 abstract class IfdTag {
-
   // tag ID number
   int get tag;
 
@@ -13,7 +10,6 @@ abstract class IfdTag {
   // list of data items (int(char or number) or Ratio)
   List get values;
 }
-
 
 // Ratio object that eventually will be able to reduce itself to lowest
 // common denominator for printing.

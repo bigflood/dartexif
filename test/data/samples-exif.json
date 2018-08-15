@@ -1,0 +1,15 @@
+{
+  "exif-samples-master/jpg/corrupted.jpg": "error",
+  "exif-samples-master/jpg/exif-org/olympus-d320l.jpg": "empty",
+  "exif-samples-master/jpg/exif-org/sony-powershota5.jpg": "empty",
+  "exif-samples-master/jpg/tests/42_IndexError.jpg": "error",
+  "exif-samples-master/jpg/tests/36-memory_error.jpg": "error",
+  "exif-samples-master/jpg/invalid/image01551.jpg": "empty",
+  "exif-samples-master/jpg/invalid/image01137.jpg": "empty",
+  "exif-samples-master/jpg/invalid/image02206.jpg": "empty",
+  "exif-samples-master/jpg/invalid/image01088.jpg": "empty",
+  "exif-samples-master/jpg/invalid/image01713.jpg": "empty",
+  "exif-samples-master/jpg/invalid/image00971.jpg": "empty",
+  "exif-samples-master/jpg/invalid/image01980.jpg": "empty",
+  "exif-samples-master/jpg/xmp/no_exif.jpg": "empty"
+}

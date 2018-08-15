@@ -5,17 +5,15 @@ import 'package:exif/exif.dart';
 // Show command line usage.
 usage(exit_status) {
   var msg = ('Usage: EXIF [OPTIONS] file1 [file2 ...]\n'
-          'Extract EXIF information from digital camera image files.\n\nOptions:\n'
-          '-h --help               Display usage information and exit.\n'
-          '-q --quick              Do not process MakerNotes.\n'
-          '-t TAG --stop-tag TAG   Stop processing when this tag is retrieved.\n'
-          '-s --strict             Run in strict mode (stop on errors).\n'
-          '-d --debug              Run in debug mode (display extra info).\n'
-      );
+      'Extract EXIF information from digital camera image files.\n\nOptions:\n'
+      '-h --help               Display usage information and exit.\n'
+      '-q --quick              Do not process MakerNotes.\n'
+      '-t TAG --stop-tag TAG   Stop processing when this tag is retrieved.\n'
+      '-s --strict             Run in strict mode (stop on errors).\n'
+      '-d --debug              Run in debug mode (display extra info).\n');
   print(msg);
   exit(exit_status);
 }
-
 
 // Parse command line options/arguments and execute.
 main(List<String> arguments) async {
@@ -27,22 +25,21 @@ main(List<String> arguments) async {
   bool strict = false;
 
   final parser = new ArgParser()
-        ..addFlag('help', abbr: 'h', callback: (v) {
-          if (v) usage(0);
-        })
-        ..addFlag('quick', abbr: 'q', callback: (v) {
-          detailed = !v;
-        })
-        ..addOption('stop-tag', abbr: 't', callback: (v) {
-          stop_tag = v;
-        })
-        ..addFlag('strict', abbr: 's', callback: (v) {
-          strict = v;
-        })
-        ..addFlag('debug', abbr: 'd', callback: (v) {
-          debug = v;
-        })
-      ;
+    ..addFlag('help', abbr: 'h', callback: (v) {
+      if (v) usage(0);
+    })
+    ..addFlag('quick', abbr: 'q', callback: (v) {
+      detailed = !v;
+    })
+    ..addOption('stop-tag', abbr: 't', callback: (v) {
+      stop_tag = v;
+    })
+    ..addFlag('strict', abbr: 's', callback: (v) {
+      strict = v;
+    })
+    ..addFlag('debug', abbr: 'd', callback: (v) {
+      debug = v;
+    });
 
   List<String> args;
 
@@ -72,8 +69,10 @@ main(List<String> arguments) async {
 }
 
 printExifOf(String path, printFunc(String),
-    {String stop_tag = null, bool details = true, bool strict = false, bool debug = false}) async {
-
+    {String stop_tag = null,
+    bool details = true,
+    bool strict = false,
+    bool debug = false}) async {
   // Map<String, IfdTag> data = await readExifFromBytes(await new File(path).readAsBytes(),
   //     stop_tag: stop_tag, details: true, strict: false, debug: false);
 
@@ -99,7 +98,7 @@ printExifOf(String path, printFunc(String),
 
   for (String key in tag_keys) {
     // try {
-      printFunc("$key (${data[key].tagType}): ${data[key]}");
+    printFunc("$key (${data[key].tagType}): ${data[key]}");
     // } catch (e) {
     //   printFunc("$i : ${data[i]}");
     // }

@@ -12,10 +12,10 @@ class LineReader {
     String s;
 
     if (n < buffer.length) {
-      s = UTF8.decode(buffer.sublist(0, n));
+      s = utf8.decode(buffer.sublist(0, n));
       buffer.removeRange(0, n);
     } else {
-      s = UTF8.decode(buffer);
+      s = utf8.decode(buffer);
       buffer.clear();
     }
 

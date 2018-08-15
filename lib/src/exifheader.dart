@@ -36,10 +36,8 @@ const List<int> IGNORE_TAGS = const [
   0x02BC, // XPM
 ];
 
-
 // Eases dealing with tags.
 class IfdTagImpl extends IfdTag {
-
   // printable version of data
   String _printable;
 
@@ -76,9 +74,9 @@ class IfdTagImpl extends IfdTag {
       List values: null,
       this.field_offset: 0,
       this.field_length: 0}) {
-        _printable = printable;
-        _tag = tag;
-        _values = values;
+    _printable = printable;
+    _tag = tag;
+    _values = values;
   }
 
   @override
@@ -329,7 +327,8 @@ class ExifHeader {
         String printable = '';
         // now 'values' is either a string or an array
         if (field_type == 2) {
-          printable = new String.fromCharCodes(values);
+          printable = new String.fromCharCodes(
+              values.where((v) => v.runtimeType == int).map((v) => v as int));
         } else if (count == 1 && field_type != 2) {
           printable = values[0].toString();
         } else if (count > 50 && values.length > 20) {
@@ -348,7 +347,7 @@ class ExifHeader {
           // optional 2nd tag element is present
           if (tag_entry.func != null) {
             // call mapping function
-            printable = tag_entry.func(values);
+            printable = tag_entry.func(values.whereType<int>().toList());
           } else if (tag_entry.tags != null) {
             try {
               // print('** ${tag_entry.tags.name} SubIFD at offset ${values[0]}:');
@@ -472,7 +471,8 @@ class ExifHeader {
     if (thumb_offset != null) {
       this.file.setPositionSync(this.offset + thumb_offset.values[0]);
       int size = this.tags['Thumbnail JPEGInterchangeFormatLength'].values[0];
-      this.tags['JPEGThumbnail'] = new IfdTagImpl(values: this.file.readSync(size));
+      this.tags['JPEGThumbnail'] =
+          new IfdTagImpl(values: this.file.readSync(size));
     }
 
     // Sometimes in a TIFF file, a JPEG thumbnail is hidden in the MakerNote
@@ -481,8 +481,8 @@ class ExifHeader {
       thumb_offset = this.tags['MakerNote JPEGThumbnail'];
       if (thumb_offset != null) {
         this.file.setPositionSync(this.offset + thumb_offset.values[0]);
-        this.tags['JPEGThumbnail'] =
-            new IfdTagImpl(values: this.file.readSync(thumb_offset.field_length));
+        this.tags['JPEGThumbnail'] = new IfdTagImpl(
+            values: this.file.readSync(thumb_offset.field_length));
       }
     }
   }
@@ -605,7 +605,8 @@ class ExifHeader {
         Map<int, MakerTag> makerTags = i[1];
 
         if (this.tags.containsKey(name)) {
-          this._canon_decode_tag(this.tags[name].values, makerTags);
+          this._canon_decode_tag(
+              this.tags[name].values.whereType<int>().toList(), makerTags);
           this.tags.remove(name);
         }
       }
