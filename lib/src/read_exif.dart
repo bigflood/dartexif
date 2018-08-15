@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:async';
 
 import 'exifheader.dart';
@@ -11,29 +10,9 @@ int _increment_base(data, base) {
   return (data[base + 2]) * 256 + (data[base + 3]) + 2;
 }
 
-// Process an image file (expects an open file object).
+// Process an image file data.
 // This is the function that has to deal with all the arbitrary nasty bits
 // of the EXIF standard.
-Future<Map<String, IfdTag>> readExifFromFile(File file,
-    {String stop_tag,
-    bool details = true,
-    bool strict = false,
-    bool debug = false,
-    bool truncate_tags = true}) async {
-  RandomAccessFile f = await file.open();
-
-  var r = await readExifFromFileReader(new FileReader.fromFile(f),
-      stop_tag: stop_tag,
-      details: details,
-      strict: strict,
-      debug: debug,
-      truncate_tags: truncate_tags);
-
-  await f.close();
-
-  return r;
-}
-
 Future<Map<String, IfdTag>> readExifFromBytes(List<int> bytes,
     {String stop_tag,
     bool details = true,

@@ -1,5 +1,5 @@
 name: exif
-version: 0.1.5
+version: 1.0.0
 author: Taesu Pyo <pyotaesu@gmail.com>
 description: Decode Exif data from tiff and jpeg files.
 homepage: https://www.github.com/bigflood/dartexif

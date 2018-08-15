@@ -76,8 +76,12 @@ printExifOf(String path, printFunc(String),
   // Map<String, IfdTag> data = await readExifFromBytes(await new File(path).readAsBytes(),
   //     stop_tag: stop_tag, details: true, strict: false, debug: false);
 
-  Map<String, IfdTag> data = await readExifFromFile(new File(path),
-      stop_tag: stop_tag, details: true, strict: false, debug: false);
+  Map<String, IfdTag> data = await readExifFromBytes(
+      File(path).readAsBytesSync(),
+      stop_tag: stop_tag,
+      details: true,
+      strict: false,
+      debug: false);
 
   if (data == null || data.isEmpty) {
     printFunc("No EXIF information found\n");

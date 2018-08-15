@@ -7,7 +7,7 @@ import "samples_run.dart";
 
 void main() {
   test("run hybrid main", () async {
-    var channel = spawnHybridUri("web_hybrid_main.dart", stayAlive: true);
+    var channel = spawnHybridUri("web_hybrid_main.dart");
 
     await for (var msg in channel.stream) {
       var file = SampleFile.fromJson(json.decode(msg));
