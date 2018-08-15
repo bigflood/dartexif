@@ -1,9 +1,13 @@
 language: dart
 dart:
   - dev
-#  - stable
+  - stable
 
 dart_task:
   - test: --platform vm
-  - test: --platform chrome
+  - test: --platform firefox
   - dartanalyzer: --fatal-warnings lib
+
+cache:
+  directories:
+    - $HOME/.pub-cache
