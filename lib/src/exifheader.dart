@@ -623,7 +623,7 @@ class ExifHeader {
   }
 
   // TODO Decode Olympus MakerNote tag based on offset within tag
-  void _olympus_decode_tag(List<int> value, mn_tags) {}
+  // void _olympus_decode_tag(List<int> value, mn_tags) {}
 
   // Decode Canon MakerNote tag based on offset within tag.
   // See http://www.burren.cx/david/canon.html by David Burren
