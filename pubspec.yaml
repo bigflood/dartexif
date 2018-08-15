@@ -13,6 +13,8 @@ dependencies:
 dev_dependencies:
   test:
   archive: '^2.0.2'
+  path:
+  http:
 executables:
   print_exif:
   
