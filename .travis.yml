@@ -4,5 +4,6 @@ dart:
 #  - stable
 
 dart_task:
-  - test
+  - test: --platform vm
+  - test: --platform chrome
   - dartanalyzer: --fatal-warnings lib

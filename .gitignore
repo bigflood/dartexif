@@ -27,3 +27,4 @@ doc/api/
 pubspec.lock
 
 .dart_tool
+/test/data/master.tar.gz
