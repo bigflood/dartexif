@@ -1,4 +1,5 @@
 # exif
+[![Build Status](https://travis-ci.org/bigflood/dartexif.svg?branch=master)](https://travis-ci.org/bigflood/dartexif)
 
 Dart module to decode Exif data from tiff and jpeg files.
 
