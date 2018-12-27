@@ -23,8 +23,8 @@ $ pub get
 
 ## Usage
 
-Simple example:
-```
+* Simple example:
+```dart
 printExifOf(String path) async {
 
   Map<String, IfdTag> data = readExifFromBytes(await new File(path).readAsBytes());
@@ -49,3 +49,5 @@ printExifOf(String path) async {
   
 }
 ```
+
+* example app: https://github.com/bigflood/exifviewer
