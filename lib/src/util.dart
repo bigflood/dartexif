@@ -28,6 +28,9 @@ String make_string(List<int> seq) {
 // Special version to deal with the code in the first 8 bytes of a user comment.
 // First 8 bytes gives coding system e.g. ASCII vs. JIS vs Unicode.
 String make_string_uc(List<int> seq) {
+  if (seq.length <= 8) {
+    return "";
+  }
   seq = seq.sublist(8);
   // Of course, this is only correct if ASCII, and the standard explicitly
   // allows JIS and Unicode.
