@@ -1,3 +1,7 @@
+## 1.0.1
+
+- bugfix: RangeError for some images
+
 ## 1.0.0
 
 - Removed dependency on io package
