@@ -1,3 +1,7 @@
+## 1.0.2
+
+- Add RandomAccessFile-backed reader
+
 ## 1.0.1
 
 - bugfix: RangeError for some images
