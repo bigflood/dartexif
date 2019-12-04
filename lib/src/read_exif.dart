@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'exifheader.dart';
 import 'util.dart';
@@ -26,6 +27,24 @@ Future<Map<String, IfdTag>> readExifFromBytes(List<int> bytes,
       debug: debug,
       truncate_tags: truncate_tags);
 
+  return r;
+}
+
+// Streaming version of [readExifFromBytes].
+Future<Map<String, IfdTag>> readExifFromFile(File file,
+    {String stop_tag,
+    bool details = true,
+    bool strict = false,
+    bool debug = false,
+    bool truncate_tags = true}) async {
+  final randomAccessFile = file.openSync();
+  var r = await readExifFromFileReader(FileReader.fromFile(randomAccessFile),
+      stop_tag: stop_tag,
+      details: details,
+      strict: strict,
+      debug: debug,
+      truncate_tags: truncate_tags);
+  randomAccessFile.closeSync();
   return r;
 }
 

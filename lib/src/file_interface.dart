@@ -1,4 +1,10 @@
+import 'dart:io';
+
 abstract class FileReader {
+  factory FileReader.fromFile(RandomAccessFile file) {
+    return _FileReader(file);
+  }
+
   int readByteSync();
   List<int> readSync(int bytes);
   int positionSync();
@@ -6,6 +12,32 @@ abstract class FileReader {
 
   factory FileReader.fromBytes(List<int> bytes) {
     return new _BytesReader(bytes);
+  }
+}
+
+class _FileReader implements FileReader {
+  final RandomAccessFile file;
+
+  _FileReader(this.file);
+
+  @override
+  int positionSync() {
+    return file.positionSync();
+  }
+
+  @override
+  int readByteSync() {
+    return file.readByteSync();
+  }
+
+  @override
+  List<int> readSync(int bytes) {
+    return file.readSync(bytes).toList(growable: false);
+  }
+
+  @override
+  setPositionSync(int position) {
+    file.setPositionSync(position);
   }
 }
 
