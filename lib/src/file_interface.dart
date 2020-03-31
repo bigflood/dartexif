@@ -1,8 +1,18 @@
-import 'dart:io';
+
+import 'dart:async';
+
+import 'file_interface_generic.dart'
+if (dart.library.html) "file_interface_html.dart"
+if (dart.library.io) 'file_interface_io.dart' ;
 
 abstract class FileReader {
-  factory FileReader.fromFile(RandomAccessFile file) {
-    return _FileReader(file);
+
+  static Future<FileReader> fromFile(dynamic file) async {
+    return createFileReaderFromFile(file) ;
+  }
+
+  factory FileReader.fromBytes(List<int> bytes) {
+    return new _BytesReader(bytes);
   }
 
   int readByteSync();
@@ -10,35 +20,6 @@ abstract class FileReader {
   int positionSync();
   setPositionSync(int position);
 
-  factory FileReader.fromBytes(List<int> bytes) {
-    return new _BytesReader(bytes);
-  }
-}
-
-class _FileReader implements FileReader {
-  final RandomAccessFile file;
-
-  _FileReader(this.file);
-
-  @override
-  int positionSync() {
-    return file.positionSync();
-  }
-
-  @override
-  int readByteSync() {
-    return file.readByteSync();
-  }
-
-  @override
-  List<int> readSync(int bytes) {
-    return file.readSync(bytes).toList(growable: false);
-  }
-
-  @override
-  setPositionSync(int position) {
-    file.setPositionSync(position);
-  }
 }
 
 class _BytesReader implements FileReader {
