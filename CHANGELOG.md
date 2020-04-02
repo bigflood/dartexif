@@ -1,3 +1,8 @@
+## 1.0.3
+
+- Make package portable between Dart Web (dart:html dependent) and Dart Native (dart:io dependent)
+- Upgraded Dart SDK to '>=2.0.0 <3.0.0'
+
 ## 1.0.2
 
 - Add RandomAccessFile-backed reader
