@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:exif/src/heic.dart';
+
 import 'exifheader.dart';
 import 'util.dart';
 import 'linereader.dart';
@@ -72,6 +74,12 @@ Map<String?, IfdTag>? readExifFromFileReader(FileReader f,
     endian = f.readByteSync();
     f.readSync(1);
     offset = 0;
+  } else if (list_range_eq(data, 4, 12, 'ftypheic'.codeUnits)!) {
+    f.setPositionSync(0);
+    final heic = HEICExifFinder(f);
+    final res = heic.findExif();
+    offset = res[0];
+    endian = res[1];
   } else if (list_range_eq(data, 0, 2, '\xFF\xD8'.codeUnits)!) {
     // it's a JPEG file
     //print("** JPEG format recognized data[0:2]= (0x${data[0]}, ${data[1]})");
