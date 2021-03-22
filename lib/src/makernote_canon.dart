@@ -628,7 +628,7 @@ class makernote_canon extends tags_base {
     return value - 1;
   }
 
-  static String _convert_temp(int value) {
+  static String? _convert_temp(int value) {
     return sprintf('%d C', [value - 128]);
   }
 

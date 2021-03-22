@@ -50,7 +50,7 @@ class makernote_nikon extends tags_base {
     // Handle combinations not in the table.
 
     int a = seq[0];
-    String ret_str;
+    String? ret_str;
     // Causes headaches for the +/- logic, so special case it.
     if (a == 0) {
       return '0 EV';

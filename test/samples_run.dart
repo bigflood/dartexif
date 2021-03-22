@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:exif/exif.dart';
 import 'package:test/test.dart';
 import 'sample_file.dart';
@@ -8,7 +10,8 @@ runSamplesTest(SampleFile file) async {
   if (file.hasError == "error") {
     expect(readExifFromBytes(content), throwsRangeError);
   } else {
-    var tags = await readExifFromBytes(content);
+    var tags =
+        await (readExifFromBytes(content) as FutureOr<Map<String?, IfdTag>>);
     if (tags.length == 0) {
       expect(file.hasError, equals("empty"));
     }

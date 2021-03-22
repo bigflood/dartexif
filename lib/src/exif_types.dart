@@ -1,14 +1,14 @@
 abstract class IfdTag {
   // tag ID number
-  int get tag;
+  int? get tag;
 
   String get tagType;
 
   // printable version of data
-  String get printable;
+  String? get printable;
 
   // list of data items (int(char or number) or Ratio)
-  List get values;
+  List? get values;
 }
 
 // Ratio object that eventually will be able to reduce itself to lowest
@@ -28,7 +28,7 @@ class Ratio {
     return '$numerator/$denominator';
   }
 
-  static int _gcd(a, b) {
+  static int? _gcd(a, b) {
     if (b == 0) {
       return a;
     } else {
@@ -37,7 +37,7 @@ class Ratio {
   }
 
   void reduce() {
-    int d = _gcd(this.numerator, this.denominator);
+    int d = _gcd(this.numerator, this.denominator)!;
     if (d > 1) {
       this.numerator = this.numerator ~/ d;
       this.denominator = this.denominator ~/ d;

@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart' show ListEquality;
 import 'package:sprintf/sprintf.dart' show sprintf;
 
-bool list_range_eq(List list1, int begin, int end, List list2) {
+bool? list_range_eq(List list1, int begin, int end, List list2) {
   begin = begin >= 0 ? begin : 0;
   begin = begin < list1.length ? begin : list1.length;
   end = end >= begin ? end : begin;

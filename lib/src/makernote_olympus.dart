@@ -14,7 +14,7 @@ class makernote_olympus extends tags_base {
       MakerTag.makeWithFunc(name, func);
 
   // decode Olympus SpecialMode tag in MakerNote
-  static String _special_mode(List<int> v) {
+  static String? _special_mode(List<int> v) {
     Map<int, String> mode1 = {
       0: 'Normal',
       1: 'Unknown',

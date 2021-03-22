@@ -1,10 +1,10 @@
-typedef String MakerTagFunc(List<int> list);
+typedef String? MakerTagFunc(List<int> list);
 
 class MakerTag {
-  String name;
-  Map<int, String> map;
-  MakerTagFunc func;
-  MakerTagsWithName tags;
+  String? name;
+  Map<int, String>? map;
+  MakerTagFunc? func;
+  MakerTagsWithName? tags;
 
   MakerTag({this.name, this.map, this.func, this.tags});
 
@@ -26,8 +26,8 @@ class MakerTag {
 }
 
 class MakerTagsWithName {
-  String name;
-  Map<int, MakerTag> tags;
+  String? name;
+  Map<int, MakerTag>? tags;
   MakerTagsWithName({this.name, this.tags});
 }
 

@@ -25,7 +25,7 @@ Stream<SampleFile> readSamples() async* {
 
   if (!await io.File(path).exists()) {
     print('downloading $path ..');
-    var res = await http.get(url);
+    var res = await http.get(url as Uri);
     await io.File(path).writeAsBytes(res.bodyBytes);
   }
 
@@ -33,7 +33,7 @@ Stream<SampleFile> readSamples() async* {
 
   var ar = TarDecoder().decodeBytes(GZipDecoder().decodeBytes(data));
 
-  Map<String, dynamic> samples =
+  Map<String, dynamic>? samples =
       json.decode(io.File(samplesExifFileName).readAsStringSync());
 
   for (var file in ar) {
@@ -44,7 +44,7 @@ Stream<SampleFile> readSamples() async* {
     yield SampleFile(
       name: file.name,
       content: file.content,
-      hasError: samples[file.name],
+      hasError: samples![file.name],
     );
   }
 }
