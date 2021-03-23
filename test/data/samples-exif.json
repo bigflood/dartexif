@@ -4,6 +4,7 @@
   "exif-samples-master/jpg/exif-org/sony-powershota5.jpg": "empty",
   "exif-samples-master/jpg/tests/42_IndexError.jpg": "error",
   "exif-samples-master/jpg/tests/36-memory_error.jpg": "error",
+  "exif-samples-master/jpg/tests/87_OSError.jpg": "error",
   "exif-samples-master/jpg/invalid/image01551.jpg": "empty",
   "exif-samples-master/jpg/invalid/image01137.jpg": "empty",
   "exif-samples-master/jpg/invalid/image02206.jpg": "empty",
