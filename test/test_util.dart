@@ -25,7 +25,7 @@ Stream<SampleFile> readSamples() async* {
 
   if (!await io.File(path).exists()) {
     print('downloading $path ..');
-    var res = await http.get(url as Uri);
+    var res = await http.get(Uri.parse(url));
     await io.File(path).writeAsBytes(res.bodyBytes);
   }
 

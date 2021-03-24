@@ -358,7 +358,7 @@ class ExifHeader {
             }
           } else if (tag_entry.map != null) {
             printable = '';
-            for (int i in values as Iterable<int>) {
+            for (int i in values) {
               // use lookup table for this tag
               printable = printable! + (tag_entry.map![i] ?? i.toString());
             }
