@@ -39,15 +39,15 @@ const List<int> IGNORE_TAGS = const [
 // Eases dealing with tags.
 class IfdTagImpl extends IfdTag {
   // printable version of data
-  String _printable;
+  String? _printable;
 
   @override
-  String get printable => _printable;
+  String? get printable => _printable;
 
   // tag ID number
-  int _tag;
+  int? _tag;
   @override
-  int get tag => _tag;
+  int? get tag => _tag;
 
   // field type as index into FIELD_TYPES
   int field_type;
@@ -62,16 +62,16 @@ class IfdTagImpl extends IfdTag {
   int field_length;
 
   // list of data items (int(char or number) or Ratio)
-  List _values;
+  List? _values;
 
   @override
-  List get values => _values;
+  List? get values => _values;
 
   IfdTagImpl(
-      {String printable: '',
+      {String? printable: '',
       int tag: -1,
       this.field_type: 0,
-      List values: null,
+      List? values: null,
       this.field_offset: 0,
       this.field_length: 0}) {
     _printable = printable;
@@ -80,9 +80,9 @@ class IfdTagImpl extends IfdTag {
   }
 
   @override
-  String toString() => printable;
+  String toString() => printable!;
 
-  String get repr {
+  String? get repr {
     return sprintf('(0x%04X) %s=%s @ %d',
         [tag, FIELD_TYPES[field_type][2], printable, field_offset]);
     // except:
@@ -103,7 +103,7 @@ class ExifHeader {
   bool debug;
   bool detailed;
   bool truncate_tags;
-  Map<String, IfdTag> tags;
+  Map<String?, IfdTag>? tags;
 
   ExifHeader(this.file, this.endian, this.offset, this.fake_exif, this.strict,
       [this.debug = false, this.detailed = true, this.truncate_tags = true]) {
@@ -139,7 +139,7 @@ class ExifHeader {
   // Convert offset to string.
   List<int> n2s(int offset, int length) {
     List<int> s = [];
-    for (int dummy; dummy < length; dummy++) {
+    for (int dummy = 0; dummy < length; dummy++) {
       if (this.endian == 'I'.codeUnitAt(0)) {
         s.add(offset & 0xFF);
       } else {
@@ -179,9 +179,9 @@ class ExifHeader {
 
   // Return a list of entries in the given IFD.
   void dump_ifd(int ifd, ifd_name,
-      {Map<int, MakerTag> tag_dict: null,
+      {Map<int, MakerTag>? tag_dict: null,
       bool relative: false,
-      String stop_tag}) {
+      String? stop_tag}) {
     stop_tag = stop_tag ?? DEFAULT_STOP_TAG;
 
     if (tag_dict == null) {
@@ -207,8 +207,8 @@ class ExifHeader {
       //print('** tag=$tag');
 
       // get tag name early to avoid errors, help debug
-      MakerTag tag_entry = tag_dict[tag];
-      String tag_name;
+      MakerTag? tag_entry = tag_dict[tag];
+      String? tag_name;
       if (tag_entry != null) {
         tag_name = tag_entry.name;
       } else {
@@ -324,7 +324,7 @@ class ExifHeader {
         }
 
         // print('** values[${values.length}]=$values');
-        String printable = '';
+        String? printable = '';
         // now 'values' is either a string or an array
         if (field_type == 2) {
           printable =
@@ -347,12 +347,12 @@ class ExifHeader {
           // optional 2nd tag element is present
           if (tag_entry.func != null) {
             // call mapping function
-            printable = tag_entry.func(values.whereType<int>().toList());
+            printable = tag_entry.func!(values.whereType<int>().toList());
           } else if (tag_entry.tags != null) {
             try {
               // print('** ${tag_entry.tags.name} SubIFD at offset ${values[0]}:');
-              this.dump_ifd(values[0], tag_entry.tags.name,
-                  tag_dict: tag_entry.tags.tags, stop_tag: stop_tag);
+              this.dump_ifd(values[0], tag_entry.tags!.name,
+                  tag_dict: tag_entry.tags!.tags, stop_tag: stop_tag);
             } on RangeError {
               // printf('** No values found for %s SubIFD', [tag_entry.tags.name]);
             }
@@ -360,14 +360,14 @@ class ExifHeader {
             printable = '';
             for (int i in values) {
               // use lookup table for this tag
-              printable += tag_entry.map[i] ?? i.toString();
+              printable = printable! + (tag_entry.map![i] ?? i.toString());
             }
           }
         }
 
         // print('** ifd=$ifd_name tag=$tag_name ($tag) field_type=$field_type, type_length=$type_length, count=$count');
 
-        this.tags[ifd_name + ' ' + tag_name] = new IfdTagImpl(
+        this.tags![ifd_name + ' ' + tag_name] = new IfdTagImpl(
             printable: printable,
             tag: tag,
             field_type: field_type,
@@ -389,7 +389,7 @@ class ExifHeader {
   // Take advantage of the pre-existing layout in the thumbnail IFD as
   // much as possible
   void extract_tiff_thumbnail(thumb_ifd) {
-    IfdTagImpl thumb = this.tags['Thumbnail Compression'];
+    IfdTagImpl? thumb = this.tags!['Thumbnail Compression'] as IfdTagImpl?;
     if (thumb == null || thumb.printable != 'Uncompressed TIFF') {
       return;
     }
@@ -406,7 +406,7 @@ class ExifHeader {
       // ... plus thumbnail IFD data plus a null "next IFD" pointer
     }
 
-    this.file.setPositionSync(this.offset + thumb_ifd);
+    this.file.setPositionSync(this.offset + thumb_ifd as int);
     tiff.addAll(this.file.readSync(entries * 12 + 2));
     tiff.addAll([0, 0, 0, 0]);
 
@@ -446,8 +446,8 @@ class ExifHeader {
     }
 
     // add pixel strips and update strip offset info
-    var old_offsets = this.tags['Thumbnail StripOffsets'].values;
-    var old_counts = this.tags['Thumbnail StripByteCounts'].values;
+    var old_offsets = this.tags!['Thumbnail StripOffsets']!.values!;
+    var old_counts = this.tags!['Thumbnail StripByteCounts']!.values;
     for (int i = 0; i < old_offsets.length; i++) {
       // update offset pointer (more nasty "strings are immutable" crap)
       List<int> tiff0 = tiff;
@@ -457,31 +457,33 @@ class ExifHeader {
       tiff.addAll(tiff0.sublist(strip_off + strip_len));
       strip_off += strip_len;
       // add pixel strip to end
-      this.file.setPositionSync(this.offset + old_offsets[i]);
-      tiff.addAll(this.file.readSync(old_counts[i]));
+      this.file.setPositionSync(this.offset + old_offsets[i] as int);
+      tiff.addAll(this.file.readSync(old_counts![i]));
     }
 
-    this.tags['TIFFThumbnail'] = new IfdTagImpl(values: tiff);
+    this.tags!['TIFFThumbnail'] = new IfdTagImpl(values: tiff);
   }
 
   // Extract JPEG thumbnail.
   // (Thankfully the JPEG data is stored as a unit.)
   extract_jpeg_thumbnail() {
-    IfdTagImpl thumb_offset = this.tags['Thumbnail JPEGInterchangeFormat'];
+    IfdTagImpl? thumb_offset =
+        this.tags!['Thumbnail JPEGInterchangeFormat'] as IfdTagImpl?;
     if (thumb_offset != null) {
-      this.file.setPositionSync(this.offset + thumb_offset.values[0]);
-      int size = this.tags['Thumbnail JPEGInterchangeFormatLength'].values[0];
-      this.tags['JPEGThumbnail'] =
+      this.file.setPositionSync(this.offset + thumb_offset.values![0] as int);
+      int size =
+          this.tags!['Thumbnail JPEGInterchangeFormatLength']!.values![0];
+      this.tags!['JPEGThumbnail'] =
           new IfdTagImpl(values: this.file.readSync(size));
     }
 
     // Sometimes in a TIFF file, a JPEG thumbnail is hidden in the MakerNote
     // since it's not allowed in a uncompressed TIFF IFD
-    if (!this.tags.containsKey('JPEGThumbnail')) {
-      thumb_offset = this.tags['MakerNote JPEGThumbnail'];
+    if (!this.tags!.containsKey('JPEGThumbnail')) {
+      thumb_offset = this.tags!['MakerNote JPEGThumbnail'] as IfdTagImpl?;
       if (thumb_offset != null) {
-        this.file.setPositionSync(this.offset + thumb_offset.values[0]);
-        this.tags['JPEGThumbnail'] = new IfdTagImpl(
+        this.file.setPositionSync(this.offset + thumb_offset.values![0] as int);
+        this.tags!['JPEGThumbnail'] = new IfdTagImpl(
             values: this.file.readSync(thumb_offset.field_length));
       }
     }
@@ -506,11 +508,11 @@ class ExifHeader {
   // the offsets should be from the header at the start of all the EXIF info,
   // or from the header at the start of the makernote.
   void decode_maker_note() {
-    IfdTagImpl note = this.tags['EXIF MakerNote'];
+    IfdTagImpl? note = this.tags!['EXIF MakerNote'] as IfdTagImpl?;
 
     // Some apps use MakerNote tags but do not use a format for which we
     // have a description, so just do a raw dump for these.
-    String make = this.tags['Image Make'].printable;
+    String make = this.tags!['Image Make']!.printable!;
 
     // print('** make=$make');
 
@@ -520,15 +522,16 @@ class ExifHeader {
     // not at the start of the makernote, it's probably type 2, since some
     // cameras work that way.
     if (make.contains('NIKON')) {
-      if (list_eq(note.values.sublist(0, 7), [78, 105, 107, 111, 110, 0, 1])) {
+      if (list_eq(
+          note!.values!.sublist(0, 7), [78, 105, 107, 111, 110, 0, 1])) {
         //print("Looks like a type 1 Nikon MakerNote.");
         this.dump_ifd(note.field_offset + 8, 'MakerNote',
             tag_dict: makernote_nikon.TAGS_OLD);
       } else if (list_eq(
-          note.values.sublist(0, 7), [78, 105, 107, 111, 110, 0, 2])) {
+          note.values!.sublist(0, 7), [78, 105, 107, 111, 110, 0, 2])) {
         //print("Looks like a labeled type 2 Nikon MakerNote");
-        if (!list_eq(note.values.sublist(12, 14), [0, 42]) &&
-            !list_eq(note.values.sublist(12, 14), [42, 0])) {
+        if (!list_eq(note.values!.sublist(12, 14), [0, 42]) &&
+            !list_eq(note.values!.sublist(12, 14), [42, 0])) {
           throw new FormatException("Missing marker tag '42' in MakerNote.");
           // skip the Makernote label and the TIFF header
         }
@@ -545,7 +548,7 @@ class ExifHeader {
 
     // Olympus
     if (make.startsWith('OLYMPUS')) {
-      this.dump_ifd(note.field_offset + 8, 'MakerNote',
+      this.dump_ifd(note!.field_offset + 8, 'MakerNote',
           tag_dict: makernote_olympus.TAGS);
       // TODO
       //for i in (('MakerNote Tag 0x2020', makernote.OLYMPUS_TAG_0x2020),):
@@ -555,7 +558,7 @@ class ExifHeader {
 
     // Casio
     if (make.contains('CASIO') || make.contains('Casio')) {
-      this.dump_ifd(note.field_offset, 'MakerNote',
+      this.dump_ifd(note!.field_offset, 'MakerNote',
           tag_dict: makernote_casio.TAGS);
       return;
     }
@@ -569,7 +572,7 @@ class ExifHeader {
       // bug: IFD offsets are from beginning of MakerNote, not
       // beginning of file header
       int offset = this.offset;
-      this.offset += note.field_offset;
+      this.offset += note!.field_offset;
       // process note with bogus values (note is actually at offset 12)
       this.dump_ifd(12, 'MakerNote', tag_dict: makernote_fujifilm.TAGS);
       // reset to correct values
@@ -580,7 +583,7 @@ class ExifHeader {
 
     // Apple
     if (make == 'Apple' &&
-        list_eq(note.values.sublist(0, 10),
+        list_eq(note!.values!.sublist(0, 10),
             [65, 112, 112, 108, 101, 32, 105, 79, 83, 0])) {
       int t = this.offset;
       this.offset += note.field_offset + 14;
@@ -591,7 +594,7 @@ class ExifHeader {
 
     // Canon
     if (make == 'Canon') {
-      this.dump_ifd(note.field_offset, 'MakerNote',
+      this.dump_ifd(note!.field_offset, 'MakerNote',
           tag_dict: makernote_canon.TAGS);
 
       for (List i in [
@@ -604,18 +607,19 @@ class ExifHeader {
         String name = i[0];
         Map<int, MakerTag> makerTags = i[1];
 
-        if (this.tags.containsKey(name)) {
+        if (this.tags!.containsKey(name)) {
           this._canon_decode_tag(
-              this.tags[name].values.whereType<int>().toList(), makerTags);
-          this.tags.remove(name);
+              this.tags![name]!.values!.whereType<int>().toList(), makerTags);
+          this.tags!.remove(name);
         }
       }
 
-      if (this.tags.containsKey(makernote_canon.CAMERA_INFO_TAG_NAME)) {
-        IfdTagImpl tag = this.tags[makernote_canon.CAMERA_INFO_TAG_NAME];
+      if (this.tags!.containsKey(makernote_canon.CAMERA_INFO_TAG_NAME)) {
+        IfdTagImpl? tag =
+            this.tags![makernote_canon.CAMERA_INFO_TAG_NAME] as IfdTagImpl?;
         //print('Canon CameraInfo');
         this._canon_decode_camera_info(tag);
-        this.tags.remove(makernote_canon.CAMERA_INFO_TAG_NAME);
+        this.tags!.remove(makernote_canon.CAMERA_INFO_TAG_NAME);
       }
 
       return;
@@ -630,10 +634,10 @@ class ExifHeader {
   void _canon_decode_tag(List<int> value, Map<int, MakerTag> mn_tags) {
     for (int i = 1; i < value.length; i++) {
       MakerTag tag = mn_tags[i] ?? MakerTag.make('Unknown');
-      String name = tag.name;
+      String name = tag.name!;
       String val;
       if (tag.map != null) {
-        val = tag.map[value[i]] ?? 'Unknown';
+        val = tag.map![value[i]] ?? 'Unknown';
       } else {
         val = value[i].toString();
       }
@@ -642,23 +646,23 @@ class ExifHeader {
 
       // it's not a real IFD Tag but we fake one to make everybody
       // happy. this will have a "proprietary" type
-      this.tags['MakerNote ' + name] = new IfdTagImpl(printable: val);
+      this.tags!['MakerNote ' + name] = new IfdTagImpl(printable: val);
     }
   }
 
   // Decode the variable length encoded camera info section.
-  void _canon_decode_camera_info(IfdTagImpl camera_info_tag) {
-    IfdTagImpl modelTag = this.tags['Image Model'];
+  void _canon_decode_camera_info(IfdTagImpl? camera_info_tag) {
+    IfdTagImpl? modelTag = this.tags!['Image Model'] as IfdTagImpl?;
     if (modelTag == null) {
       return;
     }
 
     String model = modelTag.values.toString();
 
-    Map<int, List> camera_info_tags = null;
+    Map<int, List>? camera_info_tags = null;
     //for ((model_name_re, tag_desc) in makernote_canon.CAMERA_INFO_MODEL_MAP.items()) {
     for (String model_name_re in makernote_canon.CAMERA_INFO_MODEL_MAP.keys) {
-      Map<int, List> tag_desc =
+      Map<int, List>? tag_desc =
           makernote_canon.CAMERA_INFO_MODEL_MAP[model_name_re];
       if (new RegExp(model_name_re).hasMatch(model)) {
         camera_info_tags = tag_desc;
@@ -672,23 +676,23 @@ class ExifHeader {
 
     // We are assuming here that these are all unsigned bytes (Byte or
     // Unknown)
-    if (![1, 7].contains(camera_info_tag.field_type)) {
+    if (![1, 7].contains(camera_info_tag!.field_type)) {
       return;
     }
 
-    List<int> camera_info = camera_info_tag.values;
+    List<int>? camera_info = camera_info_tag.values as List<int>?;
 
     // Look for each data value and decode it appropriately.
     for (int offset in camera_info_tags.keys) {
-      List tag = camera_info_tags[offset];
+      List tag = camera_info_tags[offset]!;
       int tag_size = tag[1];
-      if (camera_info.length < offset + tag_size) {
+      if (camera_info!.length < offset + tag_size) {
         continue;
       }
 
       List<int> packed_tag_value =
           camera_info.sublist(offset, offset + tag_size);
-      int tag_value = s2n_littleEndian(packed_tag_value);
+      int? tag_value = s2n_littleEndian(packed_tag_value);
 
       String tag_name = tag[0];
       if (tag.length > 2) {
@@ -701,7 +705,7 @@ class ExifHeader {
 
       //print(" $tag_name $tag_value");
 
-      this.tags['MakerNote ' + tag_name] =
+      this.tags!['MakerNote ' + tag_name] =
           new IfdTagImpl(printable: tag_value.toString());
     }
   }
@@ -721,7 +725,7 @@ class ExifHeader {
     // }
 
     // this.tags['Image ApplicationNotes'] = new IfdTag('\n'.join(cleaned), null, 1, null, null, null);
-    this.tags['Image ApplicationNotes'] =
+    this.tags!['Image ApplicationNotes'] =
         new IfdTagImpl(printable: xmp_string, field_type: 1);
   }
 }

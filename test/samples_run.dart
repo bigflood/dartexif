@@ -8,7 +8,7 @@ runSamplesTest(SampleFile file) async {
   if (file.hasError == "error") {
     expect(readExifFromBytes(content), throwsRangeError);
   } else {
-    var tags = await readExifFromBytes(content);
+    dynamic? tags = await readExifFromBytes(content);
     if (tags.length == 0) {
       expect(file.hasError, equals("empty"));
     }
