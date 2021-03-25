@@ -28,3 +28,4 @@ pubspec.lock
 
 .dart_tool
 /test/data/master.tar.gz
+.idea/

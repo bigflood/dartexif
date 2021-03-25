@@ -39,7 +39,7 @@ class LineReader {
     while (true) {
       List<int> r = file.readSync(1024 * 10);
 
-      if (r == null || r.isEmpty) {
+      if (r.isEmpty) {
         endoffile = true;
         endofline = -1;
       } else {

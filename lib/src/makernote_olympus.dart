@@ -29,12 +29,11 @@ class makernote_olympus extends tags_base {
       4: 'Top to bottom',
     };
 
-    if (v == null || v.isEmpty) {
+    if (v.isEmpty) {
       return '';
     }
 
-    if (v == null ||
-        v.length < 3 ||
+    if (v.length < 3 ||
         (!mode1.containsKey(v[0]) || !mode2.containsKey(v[2]))) {
       return v.toString();
     }
