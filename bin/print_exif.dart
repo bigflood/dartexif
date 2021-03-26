@@ -20,11 +20,11 @@ main(List<String> arguments) async {
   exitCode = 0;
 
   bool detailed = true;
-  String? stop_tag = null;
+  String? stop_tag;
   bool debug = false;
   bool strict = false;
 
-  final parser = new ArgParser()
+  final parser = ArgParser()
     ..addFlag('help', abbr: 'h', callback: (v) {
       if (v) usage(0);
     })
