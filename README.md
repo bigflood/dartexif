@@ -1,5 +1,8 @@
 # exif
-[![Build Status](https://travis-ci.org/bigflood/dartexif.svg?branch=master)](https://travis-ci.org/bigflood/dartexif)
+
+[![Pub Package](https://img.shields.io/pub/v/exif.svg)](https://pub.dev/packages/exif)
+[![Build Status](https://github.com/bigflood/dartexif/workflows/Dart%20CI/badge.svg)](https://github.com/bigflood/dartexif/actions?query=workflow%3A"Dart+CI"+branch%3Amaster)
+
 
 Dart module to decode Exif data from tiff and jpeg files.
 
