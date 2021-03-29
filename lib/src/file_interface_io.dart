@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 
@@ -31,17 +30,13 @@ class _FileReader implements FileReader {
 }
 
 Future<FileReader> createFileReaderFromFile(dynamic file) async {
-  if ( file is RandomAccessFile ) {
-    return _FileReader( file ) ;
+  if (file is RandomAccessFile) {
+    return _FileReader(file);
+  } else if (file is File) {
+    var data = await file.readAsBytes();
+    return FileReader.fromBytes(data);
+  } else if (file is List<int>) {
+    return FileReader.fromBytes(file);
   }
-  else if ( file is File ) {
-    var data = await file.readAsBytes() ;
-    return FileReader.fromBytes(data) ;
-  }
-  else if (file is List<int>) {
-    return FileReader.fromBytes(file) ;
-  }
-  throw UnsupportedError("Can't read file of type: ${ file.runtimeType }") ;
+  throw UnsupportedError("Can't read file of type: ${file.runtimeType}");
 }
-
-

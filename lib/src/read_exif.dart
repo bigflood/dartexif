@@ -281,7 +281,8 @@ Map<String?, IfdTag>? readExifFromFileReader(FileReader f,
     // Easy we already have them
     if (hdr.tags!.containsKey('Image ApplicationNotes')) {
       // print('** XMP present in Exif');
-      xmp_string = make_string(hdr.tags!['Image ApplicationNotes']!.values as List<int>);
+      xmp_string =
+          make_string(hdr.tags!['Image ApplicationNotes']!.values as List<int>);
       // We need to look in the entire file for the XML
     } else {
       // print('** XMP not in Exif, searching file for XMP info...');
