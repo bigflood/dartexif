@@ -84,7 +84,7 @@ class makernote_nikon extends tags_base {
   static Map<int, MakerTag> _build_tags_new() {
     return {
       0x0001: _withFunc('MakernoteVersion', make_string), // Sometimes binary
-      0x0002: _withFunc('ISOSetting', make_string),
+      0x0002: _make('ISOSetting'),
       0x0003: _make('ColorMode'),
       0x0004: _make('Quality'),
       0x0005: _make('Whitebalance'),

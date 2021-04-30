@@ -16,7 +16,12 @@ abstract class IfdTag {
 class Ratio {
   int numerator, denominator;
 
-  Ratio(this.numerator, this.denominator) {}
+  Ratio(this.numerator, this.denominator) {
+    if (denominator < 0) {
+      numerator *= -1;
+      denominator *= -1;
+    }
+  }
 
   @override
   String toString() {

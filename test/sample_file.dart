@@ -6,14 +6,14 @@ part 'sample_file.g.dart';
 class SampleFile {
   String? name;
   String? encodedContent;
-  String? hasError;
+  String? dump;
 
   List<int> getContent() => base64.decode(encodedContent!);
   setContent(List<int> v) {
     encodedContent = base64.encode(v);
   }
 
-  SampleFile({this.name, this.hasError, List<int>? content}) {
+  SampleFile({this.name, this.dump, List<int>? content}) {
     if (content != null) {
       setContent(content);
     }

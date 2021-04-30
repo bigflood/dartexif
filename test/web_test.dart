@@ -1,9 +1,9 @@
 @TestOn("browser")
 
 import "dart:convert";
+import 'package:exif/exif.dart';
 import "package:test/test.dart";
 import "sample_file.dart";
-import "samples_run.dart";
 
 void main() {
   test("run hybrid main", () async {
@@ -11,7 +11,7 @@ void main() {
 
     await for (var msg in channel.stream) {
       var file = SampleFile.fromJson(json.decode(msg));
-      await runSamplesTest(file);
+      expect(await printExifOfBytes(file.getContent()), equals(file.dump));
     }
   }, timeout: Timeout.parse("60s"));
 }

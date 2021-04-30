@@ -1,16 +1,18 @@
+import 'dart:convert';
+
 import 'package:sprintf/sprintf.dart' show sprintf;
 
-import 'util.dart';
-import 'tags.dart';
+import 'exif_types.dart';
+import 'file_interface.dart';
 import 'makernote_apple.dart';
 import 'makernote_canon.dart';
 import 'makernote_casio.dart';
 import 'makernote_fujifilm.dart';
 import 'makernote_nikon.dart';
 import 'makernote_olympus.dart';
+import 'tags.dart';
 import 'tags_info.dart';
-import 'exif_types.dart';
-import 'file_interface.dart';
+import 'util.dart';
 
 const String DEFAULT_STOP_TAG = 'UNDEF';
 
@@ -27,6 +29,9 @@ const List<List> FIELD_TYPES = const [
   const [2, 'SS', 'Signed Short'],
   const [4, 'SL', 'Signed Long'],
   const [8, 'SR', 'Signed Ratio'],
+  const [4, 'F32', 'Single-Precision Floating Point (32-bit)'],
+  const [8, 'F64', 'Double-Precision Floating Point (64-bit)'],
+  const [4, 'L', 'IFD'],
 ];
 
 // To ignore when quick processing
@@ -46,6 +51,7 @@ class IfdTagImpl extends IfdTag {
 
   // tag ID number
   int? _tag;
+
   @override
   int? get tag => _tag;
 
@@ -104,6 +110,7 @@ class ExifHeader {
   bool detailed;
   bool truncate_tags;
   Map<String?, IfdTag>? tags;
+  List<String> warnings = [];
 
   ExifHeader(this.file, this.endian, this.offset, this.fake_exif, this.strict,
       [this.debug = false, this.detailed = true, this.truncate_tags = true]) {
@@ -121,16 +128,9 @@ class ExifHeader {
     int val;
 
     if (this.endian == 'I'.codeUnitAt(0)) {
-      val = s2n_littleEndian(sliced);
+      val = s2n_littleEndian(sliced, signed: signed);
     } else {
-      val = s2n_bigEndian(sliced);
-      // Sign extension?
-    }
-    if (signed) {
-      int msb = 1 << (8 * length - 1);
-      if ((val & msb) != 0) {
-        val -= (msb << 1);
-      }
+      val = s2n_bigEndian(sliced, signed: signed);
     }
 
     return val;
@@ -219,170 +219,226 @@ class ExifHeader {
 
       // ignore certain tags for faster processing
       if (this.detailed || !IGNORE_TAGS.contains(tag)) {
-        int field_type = this.s2n(entry + 2, 2);
-
-        // unknown field type
-        if (field_type <= 0 || field_type >= FIELD_TYPES.length) {
-          //print('** ifd=$ifd_name tag=$tag_name field_type=$field_type');
-
-          if (!this.strict) {
-            continue;
-          } else {
-            throw new FormatException(
-                sprintf('Unknown type %d in tag 0x%04X', [field_type, tag]));
-          }
-        }
-
-        int type_length = FIELD_TYPES[field_type][0];
-        int count = this.s2n(entry + 4, 4);
-
-        // print('** ifd=$ifd_name tag=$tag_name type=${FIELD_TYPES[field_type]}  len=$type_length, count=$count');
-
-        // Adjust for tag id/type/count (2+2+4 bytes)
-        // Now we point at either the data or the 2nd level offset
-        int offset = entry + 8;
-        // print('** offset=$offset');
-
-        // If the value fits in 4 bytes, it is inlined, else we
-        // need to jump ahead again.
-        if (count * type_length > 4) {
-          // offset is not the value; it's a pointer to the value
-          // if relative we set things up so s2n will seek to the right
-          // place when it adds this.offset.  Note that this 'relative'
-          // is for the Nikon type 3 makernote.  Other cameras may use
-          // other relative offsets, which would have to be computed here
-          // slightly differently.
-          if (relative) {
-            int tmp_offset = this.s2n(offset, 4);
-            offset = tmp_offset + ifd - 8;
-            if (this.fake_exif) {
-              offset += 18;
-            }
-          } else {
-            offset = this.s2n(offset, 4);
-          }
-        }
-
-        int field_offset = offset;
-        // print('** field_offset=$field_offset, field_type=$field_type');
-
-        List values = [];
-        if (field_type == 2) {
-          // special case: null-terminated ASCII string
-          // XXX investigate
-          // sometimes gets too big to fit in int value
-          if (count <= 0) {
-          } else {
-            if (count > 1024 * 1024) {
-              count = 1024 * 1024;
-            }
-            // and count < (2**31))  // 2E31 is hardware dependant. --gd
-            int file_position = this.offset + offset;
-
-            this.file.setPositionSync(file_position);
-            values = this.file.readSync(count);
-            // Drop any garbage after a null.
-            int i = values.indexOf(0);
-            if (i >= 0) {
-              values = values.sublist(0, i);
-            }
-          }
-        } else {
-          // print('** field_type $field_type ${FIELD_TYPES[field_type]}');
-          // print('** count ${count}');
-
-          bool signed = [6, 8, 9, 10].contains(field_type);
-          // print('** signed=$signed');
-
-          // XXX investigate
-          // some entries get too big to handle could be malformed
-          // file or problem with this.s2n
-          if (count < 1000) {
-            for (int dummy = 0; dummy < count; dummy++) {
-              if (field_type == 5 || field_type == 10) {
-                // a ratio
-                int n = this.s2n(offset, 4, signed);
-                int d = this.s2n(offset + 4, 4, signed);
-                //print('** $n/$d');
-                Ratio r = new Ratio(n, d);
-                values.add(r);
-              } else {
-                values.add(this.s2n(offset, type_length, signed));
-              }
-              offset = offset + type_length;
-            }
-            // The test above causes problems with tags that are
-            // supposed to have long values! Fix up one important case.
-          } else if (tag_name == 'MakerNote' ||
-              tag_name == makernote_canon.CAMERA_INFO_TAG_NAME) {
-            for (int dummy = 0; dummy < count; dummy++) {
-              int value = this.s2n(offset, type_length, signed);
-              values.add(value);
-              offset = offset + type_length;
-            }
-          }
-        }
-
-        // print('** values[${values.length}]=$values');
-        String? printable = '';
-        // now 'values' is either a string or an array
-        if (field_type == 2) {
-          printable =
-              new String.fromCharCodes(values.whereType<int>().toList());
-        } else if (count == 1 && field_type != 2) {
-          printable = values[0].toString();
-        } else if (count > 50 && values.length > 20) {
-          if (this.truncate_tags) {
-            String s = values.sublist(0, 20).toString();
-            printable = s.substring(0, s.length - 1) + ", ... ]";
-          } else {
-            printable = values.toString();
-          }
-        } else {
-          printable = values.toString();
-        }
-
-        // compute printable version of values
-        if (tag_entry != null) {
-          // optional 2nd tag element is present
-          if (tag_entry.func != null) {
-            // call mapping function
-            printable = tag_entry.func!(values.whereType<int>().toList());
-          } else if (tag_entry.tags != null) {
-            try {
-              // print('** ${tag_entry.tags.name} SubIFD at offset ${values[0]}:');
-              this.dump_ifd(values[0], tag_entry.tags!.name,
-                  tag_dict: tag_entry.tags!.tags, stop_tag: stop_tag);
-            } on RangeError {
-              // printf('** No values found for %s SubIFD', [tag_entry.tags.name]);
-            }
-          } else if (tag_entry.map != null) {
-            printable = '';
-            for (int i in values) {
-              // use lookup table for this tag
-              printable = printable! + (tag_entry.map![i] ?? i.toString());
-            }
-          }
-        }
-
-        // print('** ifd=$ifd_name tag=$tag_name ($tag) field_type=$field_type, type_length=$type_length, count=$count');
-
-        this.tags![ifd_name + ' ' + tag_name] = new IfdTagImpl(
-            printable: printable,
-            tag: tag,
-            field_type: field_type,
-            values: values,
-            field_offset: field_offset,
-            field_length: count * type_length);
-
-        // var t = this.tags[ifd_name + ' ' + tag_name];
-        // print('**  "$ifd_name $tag_name": str=$t ${FIELD_TYPES[t.field_type]} @${t.field_offset} len=${t.field_length}');
-
+        process_tag(
+            ifd, ifd_name, tag_entry, entry, tag, tag_name, relative, stop_tag);
         if (tag_name == stop_tag) {
           break;
         }
       }
     }
+  }
+
+  void process_tag(int ifd, ifd_name, MakerTag? tag_entry, entry, tag, tag_name,
+      relative, stop_tag) {
+    int field_type = this.s2n(entry + 2, 2);
+
+    // unknown field type
+    if (field_type <= 0 || field_type >= FIELD_TYPES.length) {
+      //print('** ifd=$ifd_name tag=$tag_name field_type=$field_type');
+
+      if (!this.strict) {
+        return;
+      } else {
+        throw new FormatException(
+            sprintf('Unknown type %d in tag 0x%04X', [field_type, tag]));
+      }
+    }
+
+    int type_length = FIELD_TYPES[field_type][0];
+    int count = this.s2n(entry + 4, 4);
+
+    // print('** ifd=$ifd_name tag=$tag_name type=${FIELD_TYPES[field_type]}  len=$type_length, count=$count');
+
+    // Adjust for tag id/type/count (2+2+4 bytes)
+    // Now we point at either the data or the 2nd level offset
+    int offset = entry + 8;
+    // print('** offset=$offset');
+
+    // If the value fits in 4 bytes, it is inlined, else we
+    // need to jump ahead again.
+    if (count * type_length > 4) {
+      // offset is not the value; it's a pointer to the value
+      // if relative we set things up so s2n will seek to the right
+      // place when it adds this.offset.  Note that this 'relative'
+      // is for the Nikon type 3 makernote.  Other cameras may use
+      // other relative offsets, which would have to be computed here
+      // slightly differently.
+      if (relative) {
+        int tmp_offset = this.s2n(offset, 4);
+        offset = tmp_offset + ifd - 8;
+        if (this.fake_exif) {
+          offset += 18;
+        }
+      } else {
+        offset = this.s2n(offset, 4);
+      }
+    }
+
+    int field_offset = offset;
+    // print('** field_offset=$field_offset, field_type=$field_type');
+
+    List values = [];
+    if (field_type == 2) {
+      values = process_field2(ifd_name, tag_name, count, offset);
+    } else {
+      values = process_field(tag_name, count, field_type, type_length, offset);
+    }
+
+    // print('** values[${values.length}]=$values');
+
+    // now 'values' is either a string or an array
+    var printable =
+        this.to_printable(values, ifd_name, tag_name, count, field_type);
+
+    // compute printable version of values
+    if (tag_entry != null) {
+      // optional 2nd tag element is present
+      if (tag_entry.func != null) {
+        // call mapping function
+        printable = tag_entry.func!(values.whereType<int>().toList())!;
+      } else if (tag_entry.tags != null) {
+        try {
+          // print('** ${tag_entry.tags.name} SubIFD at offset ${values[0]}:');
+          this.dump_ifd(values[0], tag_entry.tags!.name,
+              tag_dict: tag_entry.tags!.tags, stop_tag: stop_tag);
+        } on RangeError {
+          warnings.add('No values found for ${tag_entry.tags!.name} SubIFD');
+        }
+      } else if (tag_entry.map != null) {
+        printable = '';
+        for (int i in values) {
+          // use lookup table for this tag
+          printable += tag_entry.map![i] ?? i.toString();
+        }
+      }
+    }
+
+    // print('** ifd=$ifd_name tag=$tag_name ($tag) field_type=$field_type, type_length=$type_length, count=$count');
+
+    this.tags![ifd_name + ' ' + tag_name] = new IfdTagImpl(
+        printable: printable,
+        tag: tag,
+        field_type: field_type,
+        values: values,
+        field_offset: field_offset,
+        field_length: count * type_length);
+
+    // var t = this.tags[ifd_name + ' ' + tag_name];
+    // print('**  "$ifd_name $tag_name": str=$t ${FIELD_TYPES[t.field_type]} @${t.field_offset} len=${t.field_length}');
+  }
+
+  String to_printable(List<dynamic> values, String ifd_name, String tag_name,
+      int count, int field_type) {
+    if (FIELD_TYPES[field_type][2] == "ASCII") {
+      var bytes = values.whereType<int>().toList();
+      try {
+        return utf8.decode(bytes);
+      } catch (e) {
+        warnings.add("Possibly corrupted field $tag_name in $ifd_name IFD");
+        if (this.truncate_tags && bytes.length > 20) {
+          return 'b"' + to_bytes_repr(bytes.sublist(0, 20)) + ", ... ]";
+        }
+        return "b'${to_bytes_repr(bytes)}'";
+      }
+    }
+
+    if (count == 1 && field_type != 2) {
+      return values[0].toString();
+    } else if (count > 50 && values.length > 20) {
+      if (this.truncate_tags) {
+        String s = values.sublist(0, 20).toString();
+        return s.substring(0, s.length - 1) + ", ... ]";
+      }
+    }
+
+    return values.toString();
+  }
+
+  String to_bytes_repr(List<int> bytes) {
+    return bytes.map((e) {
+      switch (e) {
+        case 9:
+          return r'\t';
+        case 10:
+          return r'\n';
+        case 13:
+          return r'\r';
+        case 92:
+          return r'\\';
+      }
+
+      if (e < 32 || e >= 128) {
+        return "\\x" + e.toRadixString(16).padLeft(2, '0');
+      }
+
+      return String.fromCharCode(e);
+    }).join();
+  }
+
+  List process_field2(ifd_name, tag_name, count, int offset) {
+    // special case: null-terminated ASCII string
+    // XXX investigate
+    // sometimes gets too big to fit in int value
+    if (count <= 0) {
+      return [];
+    }
+
+    if (count > 1024 * 1024) {
+      count = 1024 * 1024;
+    }
+    int file_position = this.offset + offset;
+
+    try {
+      // and count < (2**31))  // 2E31 is hardware dependant. --gd
+      this.file.setPositionSync(file_position);
+      var values = this.file.readSync(count);
+      // Drop any garbage after a null.
+      int i = values.indexOf(0);
+      if (i >= 0) {
+        values = values.sublist(0, i);
+      }
+      return values;
+    } catch (e) {
+      warnings.add("exception($e) at position: $file_position, length: $count");
+      return [];
+    }
+  }
+
+  List process_field(tag_name, count, field_type, type_length, offset) {
+    List values = [];
+    // print('** field_type $field_type ${FIELD_TYPES[field_type]}');
+    // print('** count ${count}');
+
+    bool signed = [6, 8, 9, 10].contains(field_type);
+    // print('** signed=$signed');
+
+    // XXX investigate
+    // some entries get too big to handle could be malformed
+    // file or problem with this.s2n
+    if (count < 1000) {
+      for (int dummy = 0; dummy < count; dummy++) {
+        if (field_type == 5 || field_type == 10) {
+          // a ratio
+          int n = this.s2n(offset, 4, signed);
+          int d = this.s2n(offset + 4, 4, signed);
+          Ratio r = new Ratio(n, d);
+          values.add(r);
+        } else {
+          values.add(this.s2n(offset, type_length, signed));
+        }
+        offset = offset + type_length;
+      }
+      // The test above causes problems with tags that are
+      // supposed to have long values! Fix up one important case.
+    } else if (tag_name == 'MakerNote' ||
+        tag_name == makernote_canon.CAMERA_INFO_TAG_NAME) {
+      for (int dummy = 0; dummy < count; dummy++) {
+        int value = this.s2n(offset, type_length, signed);
+        values.add(value);
+        offset = offset + type_length;
+      }
+    }
+    return values;
   }
 
   // Extract uncompressed TIFF thumbnail.
