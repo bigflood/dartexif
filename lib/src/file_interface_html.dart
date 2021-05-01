@@ -6,10 +6,10 @@ import 'file_interface.dart';
 
 Future<FileReader> createFileReaderFromFile(dynamic file) async {
   if (file is dart_html.File) {
-    var fileReader = dart_html.FileReader();
+    final fileReader = dart_html.FileReader();
     fileReader.readAsArrayBuffer(file);
     await fileReader.onLoad.first;
-    Uint8List? data = fileReader.result as Uint8List?;
+    final data = fileReader.result as Uint8List?;
     return FileReader.fromBytes(data);
   } else if (file is List<int>) {
     return FileReader.fromBytes(file);

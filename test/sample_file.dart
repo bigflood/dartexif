@@ -1,21 +1,21 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:json_annotation/json_annotation.dart';
+
 part 'sample_file.g.dart';
 
 @JsonSerializable()
 class SampleFile {
-  String? name;
-  String? encodedContent;
+  String name;
+  String encodedContent = "";
   String? dump;
 
-  List<int> getContent() => base64.decode(encodedContent!);
-  setContent(List<int> v) {
-    encodedContent = base64.encode(v);
-  }
+  List<int> getContent() => base64.decode(encodedContent);
 
-  SampleFile({this.name, this.dump, List<int>? content}) {
+  SampleFile({this.name = "", this.dump = "", Uint8List? content}) {
     if (content != null) {
-      setContent(content);
+      encodedContent = base64.encode(content);
     }
   }
 

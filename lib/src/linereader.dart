@@ -4,7 +4,7 @@ import 'file_interface.dart';
 class LineReader {
   FileReader file;
   List<int>? buffer;
-  bool endoffile = false;
+  bool endOfFile = false;
 
   LineReader(this.file);
 
@@ -22,37 +22,35 @@ class LineReader {
     return s;
   }
 
-  String readline() {
-    if (buffer == null) {
-      buffer = [];
+  String readLine() {
+    buffer ??= [];
+
+    int endOfLine = buffer!.indexOf(10);
+    if (endOfLine >= 0) {
+      return popString(endOfLine + 1);
     }
 
-    int endofline = buffer!.indexOf(10);
-    if (endofline >= 0) {
-      return popString(endofline + 1);
-    }
-
-    if (endoffile) {
+    if (endOfFile) {
       return popString(buffer!.length);
     }
 
     while (true) {
-      List<int> r = file.readSync(1024 * 10);
+      final r = file.readSync(1024 * 10);
 
       if (r.isEmpty) {
-        endoffile = true;
-        endofline = -1;
+        endOfFile = true;
+        endOfLine = -1;
       } else {
-        endofline = r.indexOf(10);
+        endOfLine = r.indexOf(10);
         buffer!.addAll(r);
-        if (endofline >= 0) {
-          endofline += buffer!.length;
+        if (endOfLine >= 0) {
+          endOfLine += buffer!.length;
         }
       }
 
-      if (endofline >= 0) {
-        return popString(endofline + 1);
-      } else if (endoffile) {
+      if (endOfLine >= 0) {
+        return popString(endOfLine + 1);
+      } else if (endOfFile) {
         return popString(buffer!.length);
       }
     }

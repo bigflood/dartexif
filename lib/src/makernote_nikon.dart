@@ -1,13 +1,14 @@
 import 'package:sprintf/sprintf.dart' show sprintf;
-import 'tags_info.dart' show MakerTag, MakerTagFunc, tags_base;
-import 'util.dart';
+
 import 'exif_types.dart';
+import 'tags_info.dart' show MakerTag, MakerTagFunc, TagsBase;
+import 'util.dart';
 
 // Makernote (proprietary) tag definitions for Nikon.
 
-class makernote_nikon extends tags_base {
-  static Map<int, MakerTag> TAGS_NEW = _build_tags_new();
-  static Map<int, MakerTag> TAGS_OLD = _build_tags_old();
+class MakerNoteNikon extends TagsBase {
+  static Map<int, MakerTag> tagsNew = _buildTagsNew();
+  static Map<int, MakerTag> tagsOld = _buildTagsOld();
 
   static MakerTag _make(String name) => MakerTag.make(name);
   static MakerTag _withMap(String name, Map<int, String> map) =>
@@ -22,68 +23,68 @@ class makernote_nikon extends tags_base {
   // This only happens if something has gone really wrong in
   // reading the Nikon MakerNote.
   // http://tomtia.plala.jp/DigitalCamera/MakerNote/index.asp
-  static String _ev_bias(List<int> seq) {
+  static String _evBias(List<int> seq) {
     if (seq.length < 4) {
       return '';
     }
-    if (list_eq(seq, [252, 1, 6, 0])) {
+    if (listEqual(seq, [252, 1, 6, 0])) {
       return '-2/3 EV';
     }
-    if (list_eq(seq, [253, 1, 6, 0])) {
+    if (listEqual(seq, [253, 1, 6, 0])) {
       return '-1/2 EV';
     }
-    if (list_eq(seq, [254, 1, 6, 0])) {
+    if (listEqual(seq, [254, 1, 6, 0])) {
       return '-1/3 EV';
     }
-    if (list_eq(seq, [0, 1, 6, 0])) {
+    if (listEqual(seq, [0, 1, 6, 0])) {
       return '0 EV';
     }
-    if (list_eq(seq, [2, 1, 6, 0])) {
+    if (listEqual(seq, [2, 1, 6, 0])) {
       return '+1/3 EV';
     }
-    if (list_eq(seq, [3, 1, 6, 0])) {
+    if (listEqual(seq, [3, 1, 6, 0])) {
       return '+1/2 EV';
     }
-    if (list_eq(seq, [4, 1, 6, 0])) {
+    if (listEqual(seq, [4, 1, 6, 0])) {
       return '+2/3 EV';
     }
     // Handle combinations not in the table.
 
     int a = seq[0];
-    String? ret_str;
+    String? retStr;
     // Causes headaches for the +/- logic, so special case it.
     if (a == 0) {
       return '0 EV';
     }
     if (a > 127) {
       a = 256 - a;
-      ret_str = '-';
+      retStr = '-';
     } else {
-      ret_str = '+';
+      retStr = '+';
     }
 
-    int step = seq[2]; // Assume third value means the step size
-    int whole = a ~/ step;
+    final step = seq[2]; // Assume third value means the step size
+    final whole = a ~/ step;
     a = a % step;
 
     if (whole != 0) {
-      ret_str = sprintf('%s%s ', [ret_str, whole.toString()]);
+      retStr = sprintf('%s%s ', [retStr, whole.toString()]);
     }
 
     if (a == 0) {
-      ret_str += 'EV';
+      retStr += 'EV';
     } else {
-      Ratio r = new Ratio(a, step);
-      ret_str = ret_str + r.toString() + ' EV';
+      final r = Ratio(a, step);
+      retStr = '$retStr$r EV';
     }
 
-    return ret_str;
+    return retStr;
   }
 
   // Nikon E99x MakerNote Tags
-  static Map<int, MakerTag> _build_tags_new() {
+  static Map<int, MakerTag> _buildTagsNew() {
     return {
-      0x0001: _withFunc('MakernoteVersion', make_string), // Sometimes binary
+      0x0001: _withFunc('MakernoteVersion', makeString), // Sometimes binary
       0x0002: _make('ISOSetting'),
       0x0003: _make('ColorMode'),
       0x0004: _make('Quality'),
@@ -94,17 +95,17 @@ class makernote_nikon extends tags_base {
       0x0009: _make('AutoFlashMode'),
       0x000B: _make('WhiteBalanceBias'),
       0x000C: _make('WhiteBalanceRBCoeff'),
-      0x000D: _withFunc('ProgramShift', _ev_bias),
+      0x000D: _withFunc('ProgramShift', _evBias),
       // Nearly the same as the other EV vals, but step size is 1/12 EV []
-      0x000E: _withFunc('ExposureDifference', _ev_bias),
+      0x000E: _withFunc('ExposureDifference', _evBias),
       0x000F: _make('ISOSelection'),
       0x0010: _make('DataDump'),
       0x0011: _make('NikonPreview'),
-      0x0012: _withFunc('FlashCompensation', _ev_bias),
+      0x0012: _withFunc('FlashCompensation', _evBias),
       0x0013: _make('ISOSpeedRequested'),
       0x0016: _make('PhotoCornerCoordinates'),
-      0x0017: _withFunc('ExternalFlashExposureComp', _ev_bias),
-      0x0018: _withFunc('FlashBracketCompensationApplied', _ev_bias),
+      0x0017: _withFunc('ExternalFlashExposureComp', _evBias),
+      0x0018: _withFunc('FlashBracketCompensationApplied', _evBias),
       0x0019: _make('AEBracketCompensationApplied'),
       0x001A: _make('ImageProcessing'),
       0x001B: _make('CropHiSpeed'),
@@ -243,7 +244,7 @@ class makernote_nikon extends tags_base {
     };
   }
 
-  static Map<int, MakerTag> _build_tags_old() {
+  static Map<int, MakerTag> _buildTagsOld() {
     return {
       0x0003: _withMap('Quality', {
         1: 'VGA Basic',

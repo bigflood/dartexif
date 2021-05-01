@@ -27,13 +27,13 @@ class Ratio {
   String toString() {
     reduce();
     if (denominator == 1) {
-      return this.numerator.toString();
+      return numerator.toString();
     }
 
     return '$numerator/$denominator';
   }
 
-  static int? _gcd(a, b) {
+  static int _gcd(int a, int b) {
     if (b == 0) {
       return a;
     } else {
@@ -42,10 +42,10 @@ class Ratio {
   }
 
   void reduce() {
-    int d = _gcd(this.numerator, this.denominator)!;
+    final d = _gcd(numerator, denominator);
     if (d > 1) {
-      this.numerator = this.numerator ~/ d;
-      this.denominator = this.denominator ~/ d;
+      numerator = numerator ~/ d;
+      denominator = denominator ~/ d;
     }
   }
 }

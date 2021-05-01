@@ -4,10 +4,10 @@ import 'package:test/test.dart';
 
 import 'test_util.dart';
 
-main() async {
-  await for (var file in readSamples()) {
+Future main() async {
+  await for (final file in readSamples()) {
     test(file.name, () async {
-      var exifDump = await printExifOfBytes(file.getContent());
+      final exifDump = await printExifOfBytes(file.getContent());
       expect(exifDump, equals(file.dump));
     });
   }

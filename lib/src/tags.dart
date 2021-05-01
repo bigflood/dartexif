@@ -1,20 +1,23 @@
 import 'tags_info.dart'
-    show MakerTag, MakerTagFunc, tags_base, MakerTagsWithName;
+    show MakerTag, MakerTagFunc, TagsBase, MakerTagsWithName;
 import 'util.dart';
 
 // Standard tag definitions.
 
-class standard_tags extends tags_base {
+class StandardTags extends TagsBase {
   static MakerTag _make(String name) => MakerTag.make(name);
+
   static MakerTag _withMap(String name, Map<int, String> map) =>
       MakerTag.makeWithMap(name, map);
+
   static MakerTag _withFunc(String name, MakerTagFunc func) =>
       MakerTag.makeWithFunc(name, func);
+
   static MakerTag _withTags(String name, MakerTagsWithName tags) =>
       MakerTag.makeWithTags(name, tags);
 
   // Interoperability tags
-  static Map<int, MakerTag> _INTEROP_TAGS = {
+  static final Map<int, MakerTag> _interopTags = {
     0x0001: _make('InteroperabilityIndex'),
     0x0002: _make('InteroperabilityVersion'),
     0x1000: _make('RelatedImageFileFormat'),
@@ -22,11 +25,11 @@ class standard_tags extends tags_base {
     0x1002: _make('RelatedImageLength'),
   };
 
-  static MakerTagsWithName _INTEROP_INFO =
-      new MakerTagsWithName(name: 'Interoperability', tags: _INTEROP_TAGS);
+  static final MakerTagsWithName _interopInfo =
+      MakerTagsWithName(name: 'Interoperability', tags: _interopTags);
 
   // GPS tags
-  static Map<int, MakerTag> _GPS_TAGS = {
+  static final Map<int, MakerTag> _gpsTags = {
     0x0000: _make('GPSVersionID'),
     0x0001: _make('GPSLatitudeRef'),
     0x0002: _make('GPSLatitude'),
@@ -60,13 +63,13 @@ class standard_tags extends tags_base {
     0x001E: _make('GPSDifferential'),
   };
 
-  static MakerTagsWithName _GPS_INFO =
-      new MakerTagsWithName(name: 'GPS', tags: _GPS_TAGS);
+  static final MakerTagsWithName _gpsInfo =
+      MakerTagsWithName(name: 'GPS', tags: _gpsTags);
 
   // Main Exif tag names
-  static Map<int, MakerTag> TAGS = _build_tags();
+  static Map<int, MakerTag> tags = _buildTags();
 
-  static Map<int, MakerTag> _build_tags() {
+  static Map<int, MakerTag> _buildTags() {
     return {
       0x00FE: _withMap('SubfileType', {
         0x0: 'Full-resolution Image',
@@ -148,7 +151,7 @@ class standard_tags extends tags_base {
       0x011A: _make('XResolution'),
       0x011B: _make('YResolution'),
       0x011C: _make('PlanarConfiguration'),
-      0x011D: _withFunc('PageName', make_string),
+      0x011D: _withFunc('PageName', makeString),
       0x011E: _make('XPosition'),
       0x011F: _make('YPosition'),
       0x0122: _withMap('GrayResponseUnit', const {
@@ -237,7 +240,7 @@ class standard_tags extends tags_base {
         8: 'Landscape Mode'
       }),
       0x8824: _make('SpectralSensitivity'),
-      0x8825: _withTags('GPSInfo', _GPS_INFO), // GPS tags
+      0x8825: _withTags('GPSInfo', _gpsInfo), // GPS tags
       0x8827: _make('ISOSpeedRatings'),
       0x8828: _make('OECF'),
       0x8830: _withMap('SensitivityType', const {
@@ -252,7 +255,7 @@ class standard_tags extends tags_base {
       }),
       0x8832: _make('RecommendedExposureIndex'),
       0x8833: _make('ISOSpeed'),
-      0x9000: _withFunc('ExifVersion', make_string),
+      0x9000: _withFunc('ExifVersion', makeString),
       0x9003: _make('DateTimeOriginal'),
       0x9004: _make('DateTimeDigitized'),
       0x9101: _withMap('ComponentsConfiguration', const {
@@ -331,7 +334,7 @@ class standard_tags extends tags_base {
       0x920A: _make('FocalLength'),
       0x9214: _make('SubjectArea'),
       0x927C: _make('MakerNote'),
-      0x9286: _withFunc('UserComment', make_string_uc),
+      0x9286: _withFunc('UserComment', makeStringUc),
       0x9290: _make('SubSecTime'),
       0x9291: _make('SubSecTimeOriginal'),
       0x9292: _make('SubSecTimeDigitized'),
@@ -340,16 +343,16 @@ class standard_tags extends tags_base {
       0x9C9B: _make('XPTitle'),
       0x9C9C: _make('XPComment'),
       0x9C9D: _withFunc('XPAuthor',
-          make_string), // const [gnored by Windows Explorer if Artist exists]
+          makeString), // const [gnored by Windows Explorer if Artist exists]
       0x9C9E: _make('XPKeywords'),
       0x9C9F: _make('XPSubject'),
-      0xA000: _withFunc('FlashPixVersion', make_string),
+      0xA000: _withFunc('FlashPixVersion', makeString),
       0xA001: _withMap('ColorSpace',
           const {1: 'sRGB', 2: 'Adobe RGB', 65535: 'Uncalibrated'}),
       0xA002: _make('ExifImageWidth'),
       0xA003: _make('ExifImageLength'),
       0xA004: _make('RelatedSoundFile'),
-      0xA005: _withTags('InteroperabilityOffset', _INTEROP_INFO),
+      0xA005: _withTags('InteroperabilityOffset', _interopInfo),
       0xA20B: _make('FlashEnergy'), // 0x920B in TIFF/EP
       0xA20C: _make('SpatialFrequencyResponse'), // 0x920C
       0xA20E: _make('FocalPlaneXResolution'), // 0x920E

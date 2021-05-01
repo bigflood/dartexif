@@ -14,28 +14,36 @@ import 'tags.dart';
 import 'tags_info.dart';
 import 'util.dart';
 
-const String DEFAULT_STOP_TAG = 'UNDEF';
+const defaultStopTag = 'UNDEF';
+
+class FieldType {
+  final int length;
+  final String abbr;
+  final String name;
+
+  const FieldType(this.length, this.abbr, this.name);
+}
 
 // field type descriptions as (length, abbreviation, full name) tuples
-const List<List> FIELD_TYPES = const [
-  const [0, 'X', 'Proprietary'], // no such type
-  const [1, 'B', 'Byte'],
-  const [1, 'A', 'ASCII'],
-  const [2, 'S', 'Short'],
-  const [4, 'L', 'Long'],
-  const [8, 'R', 'Ratio'],
-  const [1, 'SB', 'Signed Byte'],
-  const [1, 'U', 'Undefined'],
-  const [2, 'SS', 'Signed Short'],
-  const [4, 'SL', 'Signed Long'],
-  const [8, 'SR', 'Signed Ratio'],
-  const [4, 'F32', 'Single-Precision Floating Point (32-bit)'],
-  const [8, 'F64', 'Double-Precision Floating Point (64-bit)'],
-  const [4, 'L', 'IFD'],
+const fieldTypes = [
+  FieldType(0, 'X', 'Proprietary'), // no such type
+  FieldType(1, 'B', 'Byte'),
+  FieldType(1, 'A', 'ASCII'),
+  FieldType(2, 'S', 'Short'),
+  FieldType(4, 'L', 'Long'),
+  FieldType(8, 'R', 'Ratio'),
+  FieldType(1, 'SB', 'Signed Byte'),
+  FieldType(1, 'U', 'Undefined'),
+  FieldType(2, 'SS', 'Signed Short'),
+  FieldType(4, 'SL', 'Signed Long'),
+  FieldType(8, 'SR', 'Signed Ratio'),
+  FieldType(4, 'F32', 'Single-Precision Floating Point (32-bit)'),
+  FieldType(8, 'F64', 'Double-Precision Floating Point (64-bit)'),
+  FieldType(4, 'L', 'IFD'),
 ];
 
 // To ignore when quick processing
-const List<int> IGNORE_TAGS = const [
+const ignoreTags = [
   0x9286, // user comment
   0x927C, // MakerNote Tags
   0x02BC, // XPM
@@ -56,16 +64,16 @@ class IfdTagImpl extends IfdTag {
   int? get tag => _tag;
 
   // field type as index into FIELD_TYPES
-  int field_type;
+  int fieldType;
 
   @override
-  String get tagType => FIELD_TYPES[field_type][2];
+  String get tagType => fieldTypes[fieldType].name;
 
   // offset of start of field in bytes from beginning of IFD
-  int field_offset;
+  int fieldOffset;
 
   // length of data field in bytes
-  int field_length;
+  int fieldLength;
 
   // list of data items (int(char or number) or Ratio)
   List? _values;
@@ -74,12 +82,12 @@ class IfdTagImpl extends IfdTag {
   List? get values => _values;
 
   IfdTagImpl(
-      {String? printable: '',
-      int tag: -1,
-      this.field_type: 0,
-      List? values: null,
-      this.field_offset: 0,
-      this.field_length: 0}) {
+      {String? printable = '',
+      int tag = -1,
+      this.fieldType = 0,
+      List? values,
+      this.fieldOffset = 0,
+      this.fieldLength = 0}) {
     _printable = printable;
     _tag = tag;
     _values = values;
@@ -88,112 +96,105 @@ class IfdTagImpl extends IfdTag {
   @override
   String toString() => printable!;
 
-  String? get repr {
-    return sprintf('(0x%04X) %s=%s @ %d',
-        [tag, FIELD_TYPES[field_type][2], printable, field_offset]);
-    // except:
-    //     s = '(%s) %s=%s @ %s' % (str(this.tag),
-    //                              FIELD_TYPES[this.field_type][2],
-    //                              this.printable,
-    //                              str(this.field_offset))
-  }
+  String get repr => sprintf('(0x%04X) %s=%s @ %d',
+      [tag, fieldTypes[fieldType].name, printable, fieldOffset]);
 }
 
 // Handle an EXIF header.
 class ExifHeader {
   FileReader file;
-  var endian;
+  int endian;
   int offset;
-  bool fake_exif;
+  bool fakeExif;
   bool strict;
   bool debug;
   bool detailed;
-  bool truncate_tags;
-  Map<String?, IfdTag>? tags;
+  bool truncateTags;
+  Map<String?, IfdTag> tags = {};
   List<String> warnings = [];
 
-  ExifHeader(this.file, this.endian, this.offset, this.fake_exif, this.strict,
-      [this.debug = false, this.detailed = true, this.truncate_tags = true]) {
-    tags = {};
-  }
+  ExifHeader({
+    required this.file,
+    required this.endian,
+    required this.offset,
+    required this.fakeExif,
+    required this.strict,
+    this.debug = false,
+    this.detailed = true,
+    this.truncateTags = true,
+  });
 
   // Convert slice to integer, based on sign and endian flags.
   // Usually this offset is assumed to be relative to the beginning of the
   // start of the EXIF information.
   // For some cameras that use relative tags, this offset may be relative
   // to some other starting point.
-  int s2n(int offset, int length, [signed = false]) {
+  int s2n(int offset, int length, {bool signed = false}) {
     file.setPositionSync(this.offset + offset);
-    List<int> sliced = file.readSync(length);
+    final sliced = file.readSync(length);
     int val;
 
-    if (this.endian == 'I'.codeUnitAt(0)) {
-      val = s2n_littleEndian(sliced, signed: signed);
+    if (endian == 'I'.codeUnitAt(0)) {
+      val = s2nLittleEndian(sliced, signed: signed);
     } else {
-      val = s2n_bigEndian(sliced, signed: signed);
+      val = s2nBigEndian(sliced, signed: signed);
     }
 
     return val;
   }
 
   // Convert offset to string.
-  List<int> n2s(int offset, int length) {
-    List<int> s = [];
+  List<int> n2s(int _readOffset, int length) {
+    var readOffset = _readOffset;
+    final List<int> s = [];
     for (int dummy = 0; dummy < length; dummy++) {
-      if (this.endian == 'I'.codeUnitAt(0)) {
-        s.add(offset & 0xFF);
+      if (endian == 'I'.codeUnitAt(0)) {
+        s.add(readOffset & 0xFF);
       } else {
-        s.insert(0, offset & 0xFF);
+        s.insert(0, readOffset & 0xFF);
       }
-      offset = offset >> 8;
+      readOffset = readOffset >> 8;
     }
     return s;
   }
 
   // Return first IFD.
-  int _first_ifd() {
-    return this.s2n(4, 4);
-  }
+  int _firstIfd() => s2n(4, 4);
 
   // Return the pointer to next IFD.
-  int _next_ifd(int ifd) {
-    int entries = this.s2n(ifd, 2);
-    int next_ifd = this.s2n(ifd + 2 + 12 * entries, 4);
-    if (next_ifd == ifd) {
+  int _nextIfd(int ifd) {
+    final entries = s2n(ifd, 2);
+    final nextIfd = s2n(ifd + 2 + 12 * entries, 4);
+    if (nextIfd == ifd) {
       return 0;
     } else {
-      return next_ifd;
+      return nextIfd;
     }
   }
 
   // Return the list of IFDs in the header.
-  List<int> list_ifd() {
-    int i = _first_ifd();
-    List<int> ifds = [];
+  List<int> listIfd() {
+    int i = _firstIfd();
+    final List<int> ifds = [];
     while (i > 0) {
       ifds.add(i);
-      i = _next_ifd(i);
+      i = _nextIfd(i);
     }
     return ifds;
   }
 
   // Return a list of entries in the given IFD.
-  void dump_ifd(int ifd, ifd_name,
-      {Map<int, MakerTag>? tag_dict: null,
-      bool relative: false,
-      String? stop_tag}) {
-    stop_tag = stop_tag ?? DEFAULT_STOP_TAG;
-
-    if (tag_dict == null) {
-      tag_dict = standard_tags.TAGS;
-    }
+  void dumpIfd(int ifd, String ifdName,
+      {Map<int, MakerTag>? tagDict, bool relative = false, String? stopTag}) {
+    stopTag ??= defaultStopTag;
+    tagDict ??= StandardTags.tags;
 
     // print('** ifd_name $ifd_name');
 
     // make sure we can process the entries
     int entries;
     try {
-      entries = this.s2n(ifd, 2);
+      entries = s2n(ifd, 2);
     } catch (e) {
       printf("Possibly corrupted IFD: %s", [ifd]);
       return;
@@ -201,51 +202,66 @@ class ExifHeader {
 
     for (int i = 0; i < entries; i++) {
       // entry is index of start of this IFD in the file
-      int entry = ifd + 2 + 12 * i;
-      int tag = this.s2n(entry, 2);
+      final entry = ifd + 2 + 12 * i;
+      final tag = s2n(entry, 2);
 
       //print('** tag=$tag');
 
       // get tag name early to avoid errors, help debug
-      MakerTag? tag_entry = tag_dict[tag];
-      String? tag_name;
-      if (tag_entry != null) {
-        tag_name = tag_entry.name;
+      final MakerTag? tagEntry = tagDict[tag];
+      String tagName;
+      if (tagEntry != null) {
+        tagName = tagEntry.name;
       } else {
-        tag_name = sprintf('Tag 0x%04X', [tag]);
+        tagName = sprintf('Tag 0x%04X', [tag]);
       }
 
       // print('** ifd=$ifd_name tag=$tag_name ($tag)');
 
       // ignore certain tags for faster processing
-      if (this.detailed || !IGNORE_TAGS.contains(tag)) {
-        process_tag(
-            ifd, ifd_name, tag_entry, entry, tag, tag_name, relative, stop_tag);
-        if (tag_name == stop_tag) {
+      if (detailed || !ignoreTags.contains(tag)) {
+        processTag(
+            ifd: ifd,
+            ifdName: ifdName,
+            tagEntry: tagEntry,
+            entry: entry,
+            tag: tag,
+            tagName: tagName,
+            relative: relative,
+            stopTag: stopTag);
+
+        if (tagName == stopTag) {
           break;
         }
       }
     }
   }
 
-  void process_tag(int ifd, ifd_name, MakerTag? tag_entry, entry, tag, tag_name,
-      relative, stop_tag) {
-    int field_type = this.s2n(entry + 2, 2);
+  void processTag(
+      {required int ifd,
+      required String ifdName,
+      required MakerTag? tagEntry,
+      required int entry,
+      required int tag,
+      required String tagName,
+      required bool relative,
+      required String? stopTag}) {
+    final fieldType = s2n(entry + 2, 2);
 
     // unknown field type
-    if (field_type <= 0 || field_type >= FIELD_TYPES.length) {
+    if (fieldType <= 0 || fieldType >= fieldTypes.length) {
       //print('** ifd=$ifd_name tag=$tag_name field_type=$field_type');
 
-      if (!this.strict) {
+      if (!strict) {
         return;
       } else {
-        throw new FormatException(
-            sprintf('Unknown type %d in tag 0x%04X', [field_type, tag]));
+        throw FormatException(
+            sprintf('Unknown type %d in tag 0x%04X', [fieldType, tag]));
       }
     }
 
-    int type_length = FIELD_TYPES[field_type][0];
-    int count = this.s2n(entry + 4, 4);
+    final typeLength = fieldTypes[fieldType].length;
+    final count = s2n(entry + 4, 4);
 
     // print('** ifd=$ifd_name tag=$tag_name type=${FIELD_TYPES[field_type]}  len=$type_length, count=$count');
 
@@ -256,7 +272,7 @@ class ExifHeader {
 
     // If the value fits in 4 bytes, it is inlined, else we
     // need to jump ahead again.
-    if (count * type_length > 4) {
+    if (count * typeLength > 4) {
       // offset is not the value; it's a pointer to the value
       // if relative we set things up so s2n will seek to the right
       // place when it adds this.offset.  Note that this 'relative'
@@ -264,118 +280,120 @@ class ExifHeader {
       // other relative offsets, which would have to be computed here
       // slightly differently.
       if (relative) {
-        int tmp_offset = this.s2n(offset, 4);
-        offset = tmp_offset + ifd - 8;
-        if (this.fake_exif) {
+        final tmpOffset = s2n(offset, 4);
+        offset = tmpOffset + ifd - 8;
+        if (fakeExif) {
           offset += 18;
         }
       } else {
-        offset = this.s2n(offset, 4);
+        offset = s2n(offset, 4);
       }
     }
 
-    int field_offset = offset;
-    // print('** field_offset=$field_offset, field_type=$field_type');
+    final fieldOffset = offset;
+    // print('** fieldOffset=$fieldOffset, field_type=$field_type');
 
     List values = [];
-    if (field_type == 2) {
-      values = process_field2(ifd_name, tag_name, count, offset);
+    if (fieldType == 2) {
+      values = processAsciiField(ifdName, tagName, count, offset);
     } else {
-      values = process_field(tag_name, count, field_type, type_length, offset);
+      values = processField(tagName, count, fieldType, typeLength, offset);
     }
 
     // print('** values[${values.length}]=$values');
 
     // now 'values' is either a string or an array
     var printable =
-        this.to_printable(values, ifd_name, tag_name, count, field_type);
+        toPrintableString(values, ifdName, tagName, count, fieldType);
 
     // compute printable version of values
-    if (tag_entry != null) {
+    if (tagEntry != null) {
       // optional 2nd tag element is present
-      if (tag_entry.func != null) {
+      if (tagEntry.func != null) {
         // call mapping function
-        printable = tag_entry.func!(values.whereType<int>().toList())!;
-      } else if (tag_entry.tags != null) {
+        printable = tagEntry.func!(values.whereType<int>().toList())!;
+      } else if (tagEntry.tags != null) {
         try {
           // print('** ${tag_entry.tags.name} SubIFD at offset ${values[0]}:');
-          this.dump_ifd(values[0], tag_entry.tags!.name,
-              tag_dict: tag_entry.tags!.tags, stop_tag: stop_tag);
+          dumpIfd(values[0] as int, tagEntry.tags!.name,
+              tagDict: tagEntry.tags!.tags, stopTag: stopTag);
         } on RangeError {
-          warnings.add('No values found for ${tag_entry.tags!.name} SubIFD');
+          warnings.add('No values found for ${tagEntry.tags!.name} SubIFD');
         }
-      } else if (tag_entry.map != null) {
-        printable = '';
-        for (int i in values) {
+      } else if (tagEntry.map != null) {
+        final sb = StringBuffer();
+        for (final i in values) {
           // use lookup table for this tag
-          printable += tag_entry.map![i] ?? i.toString();
+          sb.write(tagEntry.map![i as int] ?? i);
         }
+        printable = sb.toString();
       }
     }
 
     // print('** ifd=$ifd_name tag=$tag_name ($tag) field_type=$field_type, type_length=$type_length, count=$count');
 
-    this.tags![ifd_name + ' ' + tag_name] = new IfdTagImpl(
+    tags['$ifdName $tagName'] = IfdTagImpl(
         printable: printable,
         tag: tag,
-        field_type: field_type,
+        fieldType: fieldType,
         values: values,
-        field_offset: field_offset,
-        field_length: count * type_length);
+        fieldOffset: fieldOffset,
+        fieldLength: count * typeLength);
 
-    // var t = this.tags[ifd_name + ' ' + tag_name];
+    // var t = tags[ifd_name + ' ' + tag_name];
     // print('**  "$ifd_name $tag_name": str=$t ${FIELD_TYPES[t.field_type]} @${t.field_offset} len=${t.field_length}');
   }
 
-  String to_printable(List<dynamic> values, String ifd_name, String tag_name,
-      int count, int field_type) {
-    if (FIELD_TYPES[field_type][2] == "ASCII") {
-      var bytes = values.whereType<int>().toList();
+  String toPrintableString(List<dynamic> values, String ifdName, String tagName,
+      int count, int fieldType) {
+    if (fieldTypes[fieldType].name == "ASCII") {
+      final bytes = values.whereType<int>().toList();
       try {
         return utf8.decode(bytes);
       } catch (e) {
-        warnings.add("Possibly corrupted field $tag_name in $ifd_name IFD");
-        if (this.truncate_tags && bytes.length > 20) {
-          return 'b"' + to_bytes_repr(bytes.sublist(0, 20)) + ", ... ]";
+        warnings.add("Possibly corrupted field $tagName in $ifdName IFD");
+        if (truncateTags && bytes.length > 20) {
+          return 'b"${bytesToStringRepr(bytes.sublist(0, 20))}, ... ]';
         }
-        return "b'${to_bytes_repr(bytes)}'";
+        return "b'${bytesToStringRepr(bytes)}'";
       }
     }
 
-    if (count == 1 && field_type != 2) {
+    if (count == 1 && fieldType != 2) {
       return values[0].toString();
     } else if (count > 50 && values.length > 20) {
-      if (this.truncate_tags) {
-        String s = values.sublist(0, 20).toString();
-        return s.substring(0, s.length - 1) + ", ... ]";
+      if (truncateTags) {
+        final s = values.sublist(0, 20).toString();
+        return "${s.substring(0, s.length - 1)}, ... ]";
       }
     }
 
     return values.toString();
   }
 
-  String to_bytes_repr(List<int> bytes) {
-    return bytes.map((e) {
-      switch (e) {
-        case 9:
-          return r'\t';
-        case 10:
-          return r'\n';
-        case 13:
-          return r'\r';
-        case 92:
-          return r'\\';
-      }
+  String bytesToStringRepr(List<int> bytes) => bytes.map((e) {
+        switch (e) {
+          case 9:
+            return r'\t';
+          case 10:
+            return r'\n';
+          case 13:
+            return r'\r';
+          case 92:
+            return r'\\';
+        }
 
-      if (e < 32 || e >= 128) {
-        return "\\x" + e.toRadixString(16).padLeft(2, '0');
-      }
+        if (e < 32 || e >= 128) {
+          final hex = e.toRadixString(16).padLeft(2, '0');
+          return "\\x$hex";
+        }
 
-      return String.fromCharCode(e);
-    }).join();
-  }
+        return String.fromCharCode(e);
+      }).join();
 
-  List process_field2(ifd_name, tag_name, count, int offset) {
+  List processAsciiField(
+      String ifdName, String tagName, int _count, int offset) {
+    var count = _count;
     // special case: null-terminated ASCII string
     // XXX investigate
     // sometimes gets too big to fit in int value
@@ -386,30 +404,32 @@ class ExifHeader {
     if (count > 1024 * 1024) {
       count = 1024 * 1024;
     }
-    int file_position = this.offset + offset;
+    final int filePosition = this.offset + offset;
 
     try {
       // and count < (2**31))  // 2E31 is hardware dependant. --gd
-      this.file.setPositionSync(file_position);
-      var values = this.file.readSync(count);
+      file.setPositionSync(filePosition);
+      var values = file.readSync(count);
       // Drop any garbage after a null.
-      int i = values.indexOf(0);
+      final i = values.indexOf(0);
       if (i >= 0) {
         values = values.sublist(0, i);
       }
       return values;
     } catch (e) {
-      warnings.add("exception($e) at position: $file_position, length: $count");
+      warnings.add("exception($e) at position: $filePosition, length: $count");
       return [];
     }
   }
 
-  List process_field(tag_name, count, field_type, type_length, offset) {
-    List values = [];
+  List processField(String tagName, int count, int fieldType, int typeLength,
+      int _fieldOffset) {
+    var fieldOffset = _fieldOffset;
+    final List values = [];
     // print('** field_type $field_type ${FIELD_TYPES[field_type]}');
     // print('** count ${count}');
 
-    bool signed = [6, 8, 9, 10].contains(field_type);
+    final signed = [6, 8, 9, 10].contains(fieldType);
     // print('** signed=$signed');
 
     // XXX investigate
@@ -417,25 +437,25 @@ class ExifHeader {
     // file or problem with this.s2n
     if (count < 1000) {
       for (int dummy = 0; dummy < count; dummy++) {
-        if (field_type == 5 || field_type == 10) {
+        if (fieldType == 5 || fieldType == 10) {
           // a ratio
-          int n = this.s2n(offset, 4, signed);
-          int d = this.s2n(offset + 4, 4, signed);
-          Ratio r = new Ratio(n, d);
+          final n = s2n(fieldOffset, 4, signed: signed);
+          final d = s2n(fieldOffset + 4, 4, signed: signed);
+          final r = Ratio(n, d);
           values.add(r);
         } else {
-          values.add(this.s2n(offset, type_length, signed));
+          values.add(s2n(fieldOffset, typeLength, signed: signed));
         }
-        offset = offset + type_length;
+        fieldOffset += typeLength;
       }
       // The test above causes problems with tags that are
       // supposed to have long values! Fix up one important case.
-    } else if (tag_name == 'MakerNote' ||
-        tag_name == makernote_canon.CAMERA_INFO_TAG_NAME) {
+    } else if (tagName == 'MakerNote' ||
+        tagName == MakerNoteCanon.cameraInfoTagName) {
       for (int dummy = 0; dummy < count; dummy++) {
-        int value = this.s2n(offset, type_length, signed);
+        final value = s2n(fieldOffset, typeLength, signed: signed);
         values.add(value);
-        offset = offset + type_length;
+        fieldOffset += typeLength;
       }
     }
     return values;
@@ -444,103 +464,101 @@ class ExifHeader {
   // Extract uncompressed TIFF thumbnail.
   // Take advantage of the pre-existing layout in the thumbnail IFD as
   // much as possible
-  void extract_tiff_thumbnail(thumb_ifd) {
-    IfdTagImpl? thumb = this.tags!['Thumbnail Compression'] as IfdTagImpl?;
+  void extractTiffThumbnail(int thumbIfd) {
+    final thumb = tags['Thumbnail Compression'] as IfdTagImpl?;
     if (thumb == null || thumb.printable != 'Uncompressed TIFF') {
       return;
     }
 
     List<int> tiff;
-    int strip_off = 0, strip_len = 0;
+    int stripOff = 0, stripLen = 0;
 
-    int entries = this.s2n(thumb_ifd, 2);
+    final entries = s2n(thumbIfd, 2);
     // this is header plus offset to IFD ...
-    if (this.endian == 'M'.codeUnitAt(0)) {
+    if (endian == 'M'.codeUnitAt(0)) {
       tiff = 'MM\x00*\x00\x00\x00\x08'.codeUnits;
     } else {
       tiff = 'II*\x00\x08\x00\x00\x00'.codeUnits;
       // ... plus thumbnail IFD data plus a null "next IFD" pointer
     }
 
-    this.file.setPositionSync(this.offset + thumb_ifd as int);
-    tiff.addAll(this.file.readSync(entries * 12 + 2));
+    file.setPositionSync(offset + thumbIfd);
+    tiff.addAll(file.readSync(entries * 12 + 2));
     tiff.addAll([0, 0, 0, 0]);
 
     // fix up large value offset pointers into data area
     for (int i = 0; i < entries; i++) {
-      int entry = thumb_ifd + 2 + 12 * i;
-      int tag = this.s2n(entry, 2);
-      int field_type = this.s2n(entry + 2, 2);
-      int type_length = FIELD_TYPES[field_type][0];
-      int count = this.s2n(entry + 4, 4);
-      int old_offset = this.s2n(entry + 8, 4);
+      final entry = thumbIfd + 2 + 12 * i;
+      final tag = s2n(entry, 2);
+      final fieldType = s2n(entry + 2, 2);
+      final typeLength = fieldTypes[fieldType].length;
+      final count = s2n(entry + 4, 4);
+      final oldOffset = s2n(entry + 8, 4);
       // start of the 4-byte pointer area in entry
-      int ptr = i * 12 + 18;
+      final ptr = i * 12 + 18;
       // remember strip offsets location
       if (tag == 0x0111) {
-        strip_off = ptr;
-        strip_len = count * type_length;
+        stripOff = ptr;
+        stripLen = count * typeLength;
         // is it in the data area?
       }
-      if (count * type_length > 4) {
+      if (count * typeLength > 4) {
         // update offset pointer (nasty "strings are immutable" crap)
-        // should be able to say "tiff[ptr:ptr+4]=newoff"
-        List<int> tiff0 = tiff;
-        int newoff = tiff0.length;
+        // should be able to say "tiff[ptr:ptr+4]=newOffset"
+        final tiff0 = tiff;
+        final newOffset = tiff0.length;
         tiff = tiff0.sublist(0, ptr);
-        tiff.addAll(n2s(newoff, 4));
+        tiff.addAll(n2s(newOffset, 4));
         tiff.addAll(tiff0.sublist(ptr + 4));
         // remember strip offsets location
         if (tag == 0x0111) {
-          strip_off = newoff;
-          strip_len = 4;
+          stripOff = newOffset;
+          stripLen = 4;
         }
         // get original data and store it
-        this.file.setPositionSync(this.offset + old_offset);
-        tiff.addAll(this.file.readSync(count * type_length));
+        file.setPositionSync(offset + oldOffset);
+        tiff.addAll(file.readSync(count * typeLength));
       }
     }
 
     // add pixel strips and update strip offset info
-    var old_offsets = this.tags!['Thumbnail StripOffsets']!.values!;
-    var old_counts = this.tags!['Thumbnail StripByteCounts']!.values;
-    for (int i = 0; i < old_offsets.length; i++) {
+    final oldOffsets = tags['Thumbnail StripOffsets']!.values!;
+    final oldCounts = tags['Thumbnail StripByteCounts']!.values;
+    for (int i = 0; i < oldOffsets.length; i++) {
       // update offset pointer (more nasty "strings are immutable" crap)
-      List<int> tiff0 = tiff;
-      List<int> offset = n2s(tiff0.length, strip_len);
-      tiff = tiff0.sublist(0, strip_off);
+      final tiff0 = tiff;
+      final offset = n2s(tiff0.length, stripLen);
+      tiff = tiff0.sublist(0, stripOff);
       tiff.addAll(offset);
-      tiff.addAll(tiff0.sublist(strip_off + strip_len));
-      strip_off += strip_len;
+      tiff.addAll(tiff0.sublist(stripOff + stripLen));
+      stripOff += stripLen;
       // add pixel strip to end
-      this.file.setPositionSync(this.offset + old_offsets[i] as int);
-      tiff.addAll(this.file.readSync(old_counts![i]));
+      file.setPositionSync(this.offset + (oldOffsets[i] as int));
+      tiff.addAll(file.readSync(oldCounts![i] as int));
     }
 
-    this.tags!['TIFFThumbnail'] = new IfdTagImpl(values: tiff);
+    tags['TIFFThumbnail'] = IfdTagImpl(values: tiff);
   }
 
   // Extract JPEG thumbnail.
   // (Thankfully the JPEG data is stored as a unit.)
-  extract_jpeg_thumbnail() {
-    IfdTagImpl? thumb_offset =
-        this.tags!['Thumbnail JPEGInterchangeFormat'] as IfdTagImpl?;
-    if (thumb_offset != null) {
-      this.file.setPositionSync(this.offset + thumb_offset.values![0] as int);
-      int size =
-          this.tags!['Thumbnail JPEGInterchangeFormatLength']!.values![0];
-      this.tags!['JPEGThumbnail'] =
-          new IfdTagImpl(values: this.file.readSync(size));
+  void extractJpegThumbnail() {
+    var thumbOffset = tags['Thumbnail JPEGInterchangeFormat'] as IfdTagImpl?;
+    if (thumbOffset != null) {
+      file.setPositionSync(offset + (thumbOffset.values![0] as int));
+      final size =
+          tags['Thumbnail JPEGInterchangeFormatLength']!.values![0] as int;
+      tags['JPEGThumbnail'] = IfdTagImpl(values: file.readSync(size));
     }
 
     // Sometimes in a TIFF file, a JPEG thumbnail is hidden in the MakerNote
     // since it's not allowed in a uncompressed TIFF IFD
-    if (!this.tags!.containsKey('JPEGThumbnail')) {
-      thumb_offset = this.tags!['MakerNote JPEGThumbnail'] as IfdTagImpl?;
-      if (thumb_offset != null) {
-        this.file.setPositionSync(this.offset + thumb_offset.values![0] as int);
-        this.tags!['JPEGThumbnail'] = new IfdTagImpl(
-            values: this.file.readSync(thumb_offset.field_length));
+    if (!tags.containsKey('JPEGThumbnail')) {
+      thumbOffset = tags['MakerNote JPEGThumbnail'] as IfdTagImpl?;
+      if (thumbOffset != null) {
+        file.setPositionSync(offset + (thumbOffset.values![0] as int));
+        tags['JPEGThumbnail'] =
+            IfdTagImpl(values: file.readSync(thumbOffset.fieldLength));
       }
     }
   }
@@ -563,12 +581,12 @@ class ExifHeader {
   // follow EXIF format internally.  Once they did, it's ambiguous whether
   // the offsets should be from the header at the start of all the EXIF info,
   // or from the header at the start of the makernote.
-  void decode_maker_note() {
-    IfdTagImpl? note = this.tags!['EXIF MakerNote'] as IfdTagImpl?;
+  void decodeMakerNote() {
+    final note = tags['EXIF MakerNote'] as IfdTagImpl?;
 
     // Some apps use MakerNote tags but do not use a format for which we
     // have a description, so just do a raw dump for these.
-    String make = this.tags!['Image Make']!.printable!;
+    final make = tags['Image Make']!.printable!;
 
     // print('** make=$make');
 
@@ -578,44 +596,42 @@ class ExifHeader {
     // not at the start of the makernote, it's probably type 2, since some
     // cameras work that way.
     if (make.contains('NIKON')) {
-      if (list_eq(
+      if (listEqual(
           note!.values!.sublist(0, 7), [78, 105, 107, 111, 110, 0, 1])) {
         //print("Looks like a type 1 Nikon MakerNote.");
-        this.dump_ifd(note.field_offset + 8, 'MakerNote',
-            tag_dict: makernote_nikon.TAGS_OLD);
-      } else if (list_eq(
+        dumpIfd(note.fieldOffset + 8, 'MakerNote',
+            tagDict: MakerNoteNikon.tagsOld);
+      } else if (listEqual(
           note.values!.sublist(0, 7), [78, 105, 107, 111, 110, 0, 2])) {
         //print("Looks like a labeled type 2 Nikon MakerNote");
-        if (!list_eq(note.values!.sublist(12, 14), [0, 42]) &&
-            !list_eq(note.values!.sublist(12, 14), [42, 0])) {
-          throw new FormatException("Missing marker tag '42' in MakerNote.");
+        if (!listEqual(note.values!.sublist(12, 14), [0, 42]) &&
+            !listEqual(note.values!.sublist(12, 14), [42, 0])) {
+          throw const FormatException("Missing marker tag '42' in MakerNote.");
           // skip the Makernote label and the TIFF header
         }
-        this.dump_ifd(note.field_offset + 10 + 8, 'MakerNote',
-            tag_dict: makernote_nikon.TAGS_NEW, relative: true);
+        dumpIfd(note.fieldOffset + 10 + 8, 'MakerNote',
+            tagDict: MakerNoteNikon.tagsNew, relative: true);
       } else {
         // E99x or D1
         //print("Looks like an unlabeled type 2 Nikon MakerNote");
-        this.dump_ifd(note.field_offset, 'MakerNote',
-            tag_dict: makernote_nikon.TAGS_NEW);
+        dumpIfd(note.fieldOffset, 'MakerNote', tagDict: MakerNoteNikon.tagsNew);
       }
       return;
     }
 
     // Olympus
     if (make.startsWith('OLYMPUS')) {
-      this.dump_ifd(note!.field_offset + 8, 'MakerNote',
-          tag_dict: makernote_olympus.TAGS);
+      dumpIfd(note!.fieldOffset + 8, 'MakerNote',
+          tagDict: MakerNoteOlympus.tags);
       // TODO
       //for i in (('MakerNote Tag 0x2020', makernote.OLYMPUS_TAG_0x2020),):
-      //    this.decode_olympus_tag(this.tags[i[0]].values, i[1])
+      //    this.decode_olympus_tag(tags[i[0]].values, i[1])
       //return
     }
 
     // Casio
     if (make.contains('CASIO') || make.contains('Casio')) {
-      this.dump_ifd(note!.field_offset, 'MakerNote',
-          tag_dict: makernote_casio.TAGS);
+      dumpIfd(note!.fieldOffset, 'MakerNote', tagDict: MakerNoteCasio.tags);
       return;
     }
 
@@ -623,59 +639,49 @@ class ExifHeader {
     if (make == 'FUJIFILM') {
       // bug: everything else is "Motorola" endian, but the MakerNote
       // is "Intel" endian
-      endian = this.endian;
-      this.endian = 'I'.codeUnitAt(0);
+      final originalEndian = endian;
+      final originalOffset = offset;
+
+      endian = 'I'.codeUnitAt(0);
       // bug: IFD offsets are from beginning of MakerNote, not
       // beginning of file header
-      int offset = this.offset;
-      this.offset += note!.field_offset;
+      offset += note!.fieldOffset;
       // process note with bogus values (note is actually at offset 12)
-      this.dump_ifd(12, 'MakerNote', tag_dict: makernote_fujifilm.TAGS);
+      dumpIfd(12, 'MakerNote', tagDict: MakerNoteFujifilm.tags);
+
       // reset to correct values
-      this.endian = endian;
-      this.offset = offset;
+      endian = originalEndian;
+      offset = originalOffset;
       return;
     }
 
     // Apple
     if (make == 'Apple' &&
-        list_eq(note!.values!.sublist(0, 10),
+        listEqual(note!.values!.sublist(0, 10),
             [65, 112, 112, 108, 101, 32, 105, 79, 83, 0])) {
-      int t = this.offset;
-      this.offset += note.field_offset + 14;
-      this.dump_ifd(0, 'MakerNote', tag_dict: makernote_apple.TAGS);
-      this.offset = t;
+      final originalOffset = offset;
+      offset += note.fieldOffset + 14;
+      dumpIfd(0, 'MakerNote', tagDict: MakerNoteApple.tags);
+      offset = originalOffset;
       return;
     }
 
     // Canon
     if (make == 'Canon') {
-      this.dump_ifd(note!.field_offset, 'MakerNote',
-          tag_dict: makernote_canon.TAGS);
+      dumpIfd(note!.fieldOffset, 'MakerNote', tagDict: MakerNoteCanon.tags);
 
-      for (List i in [
-        ['MakerNote Tag 0x0001', makernote_canon.CAMERA_SETTINGS],
-        ['MakerNote Tag 0x0002', makernote_canon.FOCAL_LENGTH],
-        ['MakerNote Tag 0x0004', makernote_canon.SHOT_INFO],
-        ['MakerNote Tag 0x0026', makernote_canon.AF_INFO_2],
-        ['MakerNote Tag 0x0093', makernote_canon.FILE_INFO]
-      ]) {
-        String name = i[0];
-        Map<int, MakerTag> makerTags = i[1];
-
-        if (this.tags!.containsKey(name)) {
-          this._canon_decode_tag(
-              this.tags![name]!.values!.whereType<int>().toList(), makerTags);
-          this.tags!.remove(name);
+      MakerNoteCanon.tagsXxx.forEach((name, makerTags) {
+        if (tags.containsKey(name)) {
+          _canonDecodeTag(
+              tags[name]!.values!.whereType<int>().toList(), makerTags);
+          tags.remove(name);
         }
-      }
+      });
 
-      if (this.tags!.containsKey(makernote_canon.CAMERA_INFO_TAG_NAME)) {
-        IfdTagImpl? tag =
-            this.tags![makernote_canon.CAMERA_INFO_TAG_NAME] as IfdTagImpl?;
-        //print('Canon CameraInfo');
-        this._canon_decode_camera_info(tag);
-        this.tags!.remove(makernote_canon.CAMERA_INFO_TAG_NAME);
+      if (tags.containsKey(MakerNoteCanon.cameraInfoTagName)) {
+        final tag = tags[MakerNoteCanon.cameraInfoTagName] as IfdTagImpl?;
+        _canonDecodeCameraInfo(tag);
+        tags.remove(MakerNoteCanon.cameraInfoTagName);
       }
 
       return;
@@ -687,10 +693,10 @@ class ExifHeader {
 
   // Decode Canon MakerNote tag based on offset within tag.
   // See http://www.burren.cx/david/canon.html by David Burren
-  void _canon_decode_tag(List<int> value, Map<int, MakerTag> mn_tags) {
+  void _canonDecodeTag(List<int> value, Map<int, MakerTag> mnTags) {
     for (int i = 1; i < value.length; i++) {
-      MakerTag tag = mn_tags[i] ?? MakerTag.make('Unknown');
-      String name = tag.name!;
+      final tag = mnTags[i] ?? MakerTag.make('Unknown');
+      final name = tag.name;
       String val;
       if (tag.map != null) {
         val = tag.map![value[i]] ?? 'Unknown';
@@ -702,71 +708,57 @@ class ExifHeader {
 
       // it's not a real IFD Tag but we fake one to make everybody
       // happy. this will have a "proprietary" type
-      this.tags!['MakerNote ' + name] = new IfdTagImpl(printable: val);
+      tags['MakerNote $name'] = IfdTagImpl(printable: val);
     }
   }
 
   // Decode the variable length encoded camera info section.
-  void _canon_decode_camera_info(IfdTagImpl? camera_info_tag) {
-    IfdTagImpl? modelTag = this.tags!['Image Model'] as IfdTagImpl?;
+  void _canonDecodeCameraInfo(IfdTagImpl? cameraInfoTag) {
+    final modelTag = tags['Image Model'] as IfdTagImpl?;
     if (modelTag == null) {
       return;
     }
 
-    String model = modelTag.values.toString();
+    final model = modelTag.values.toString();
 
-    Map<int, List>? camera_info_tags = null;
-    //for ((model_name_re, tag_desc) in makernote_canon.CAMERA_INFO_MODEL_MAP.items()) {
-    for (String model_name_re in makernote_canon.CAMERA_INFO_MODEL_MAP.keys) {
-      Map<int, List>? tag_desc =
-          makernote_canon.CAMERA_INFO_MODEL_MAP[model_name_re];
-      if (new RegExp(model_name_re).hasMatch(model)) {
-        camera_info_tags = tag_desc;
+    Map<int, CameraInfo>? cameraInfoTags;
+    for (final modelNameRegExp in MakerNoteCanon.cameraInfoModelMap.keys) {
+      final tagDesc = MakerNoteCanon.cameraInfoModelMap[modelNameRegExp];
+      if (RegExp(modelNameRegExp).hasMatch(model)) {
+        cameraInfoTags = tagDesc;
         break;
       }
     }
 
-    if (camera_info_tags == null) {
+    if (cameraInfoTags == null) {
       return;
     }
 
     // We are assuming here that these are all unsigned bytes (Byte or
     // Unknown)
-    if (![1, 7].contains(camera_info_tag!.field_type)) {
+    if (![1, 7].contains(cameraInfoTag!.fieldType)) {
       return;
     }
 
-    List<int>? camera_info = camera_info_tag.values as List<int>?;
+    final cameraInfo = cameraInfoTag.values as List<int>?;
 
     // Look for each data value and decode it appropriately.
-    for (int offset in camera_info_tags.keys) {
-      List tag = camera_info_tags[offset]!;
-      int tag_size = tag[1];
-      if (camera_info!.length < offset + tag_size) {
+    for (final offset in cameraInfoTags.keys) {
+      final tag = cameraInfoTags[offset]!;
+      final tagSize = tag.tagSize;
+      if (cameraInfo!.length < offset + tagSize) {
         continue;
       }
 
-      List<int> packed_tag_value =
-          camera_info.sublist(offset, offset + tag_size);
-      int? tag_value = s2n_littleEndian(packed_tag_value);
+      final packedTagValue = cameraInfo.sublist(offset, offset + tagSize);
+      final tagValue = s2nLittleEndian(packedTagValue);
 
-      String tag_name = tag[0];
-      if (tag.length > 2) {
-        if (tag[2] is Function) {
-          tag_value = tag[2](tag_value);
-        } else {
-          tag_value = tag[2][tag_value] ?? tag_value;
-        }
-      }
-
-      //print(" $tag_name $tag_value");
-
-      this.tags!['MakerNote ' + tag_name] =
-          new IfdTagImpl(printable: tag_value.toString());
+      tags['MakerNote ${tag.tagName}'] =
+          IfdTagImpl(printable: tag.function(tagValue));
     }
   }
 
-  void parse_xmp(xmp_string) {
+  void parseXmp(String xmpString) {
     //import xml.dom.minidom;
 
     // print('XMP cleaning data');
@@ -780,8 +772,8 @@ class ExifHeader {
     //     }
     // }
 
-    // this.tags['Image ApplicationNotes'] = new IfdTag('\n'.join(cleaned), null, 1, null, null, null);
-    this.tags!['Image ApplicationNotes'] =
-        new IfdTagImpl(printable: xmp_string, field_type: 1);
+    // tags['Image ApplicationNotes'] = new IfdTag('\n'.join(cleaned), null, 1, null, null, null);
+    tags['Image ApplicationNotes'] =
+        IfdTagImpl(printable: xmpString, fieldType: 1);
   }
 }

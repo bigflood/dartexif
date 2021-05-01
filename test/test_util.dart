@@ -1,10 +1,8 @@
-// library dartexif.test.test_util;
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:typed_data';
 
-// import 'dart:mirrors';
 import 'package:archive/archive.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -12,26 +10,26 @@ import 'package:path/path.dart' as p;
 import 'sample_file.dart';
 
 Stream<SampleFile> readSamples() async* {
-  var commit = "2a62d69683c154ffe03b4502bdfa3248d8a1b05c";
-  var filenamePrefix = p.join("test", "data", "$commit-");
+  const commit = "2a62d69683c154ffe03b4502bdfa3248d8a1b05c";
+  final filenamePrefix = p.join("test", "data", "$commit-");
 
-  var dumpFile = await downloadUrl(
+  final dumpFile = await downloadUrl(
     filenamePrefix,
     "https://raw.githubusercontent.com/ianare/exif-samples/$commit/dump",
   );
 
-  var nameToDumps = readDumpFile(dumpFile);
+  final nameToDumps = readDumpFile(dumpFile);
 
-  var path = await downloadUrl(
+  final path = await downloadUrl(
     filenamePrefix,
     "https://github.com/ianare/exif-samples/archive/$commit.tar.gz",
   );
 
-  var data = io.File(path).readAsBytesSync();
+  final data = io.File(path).readAsBytesSync();
 
-  var ar = TarDecoder().decodeBytes(GZipDecoder().decodeBytes(data));
+  final ar = TarDecoder().decodeBytes(GZipDecoder().decodeBytes(data));
 
-  for (var file in ar) {
+  for (final file in ar) {
     file.name =
         file.name.replaceAll("exif-samples-$commit", "exif-samples-master");
 
@@ -45,16 +43,16 @@ Stream<SampleFile> readSamples() async* {
 
     yield SampleFile(
       name: file.name,
-      content: file.content,
+      content: file.content as Uint8List,
       dump: nameToDumps[file.name],
     );
   }
 }
 
 Map<String, String> readDumpFile(String dumpFile) {
-  var fileDumps = io.File(dumpFile).readAsStringSync().trim().split("\n\n");
+  final fileDumps = io.File(dumpFile).readAsStringSync().trim().split("\n\n");
 
-  var nameAndDumps = fileDumps.map((e) => e.split("\n")).map((e) => MapEntry(
+  final nameAndDumps = fileDumps.map((e) => e.split("\n")).map((e) => MapEntry(
       e[0].split("Opening: ")[1],
       e
           .sublist(1)
@@ -67,11 +65,11 @@ Map<String, String> readDumpFile(String dumpFile) {
 }
 
 Future<String> downloadUrl(String filenamePrefix, String url) async {
-  var filename = filenamePrefix + Uri.parse(url).pathSegments.last;
+  final filename = filenamePrefix + Uri.parse(url).pathSegments.last;
 
   if (!await io.File(filename).exists()) {
     print('downloading $filename ..');
-    var res = await http.get(Uri.parse(url));
+    final res = await http.get(Uri.parse(url));
     await io.File(filename).writeAsBytes(res.bodyBytes);
   }
 

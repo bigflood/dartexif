@@ -1,11 +1,12 @@
 import 'package:sprintf/sprintf.dart' show sprintf;
+
+import 'tags_info.dart' show MakerTag, MakerTagFunc, TagsBase;
 import 'util.dart';
-import 'tags_info.dart' show MakerTag, MakerTagFunc, tags_base;
 
 // Makernote (proprietary) tag definitions for olympus.
 
-class makernote_olympus extends tags_base {
-  static Map<int, MakerTag> TAGS = _build_tags();
+class MakerNoteOlympus extends TagsBase {
+  static Map<int, MakerTag> tags = _buildTags();
 
   static MakerTag _make(String name) => MakerTag.make(name);
   static MakerTag _withMap(String name, Map<int, String> map) =>
@@ -14,14 +15,14 @@ class makernote_olympus extends tags_base {
       MakerTag.makeWithFunc(name, func);
 
   // decode Olympus SpecialMode tag in MakerNote
-  static String? _special_mode(List<int> v) {
-    Map<int, String> mode1 = {
+  static String? _specialMode(List<int> v) {
+    final Map<int, String> mode1 = {
       0: 'Normal',
       1: 'Unknown',
       2: 'Fast',
       3: 'Panorama',
     };
-    Map<int, String> mode2 = {
+    final Map<int, String> mode2 = {
       0: 'Non-panoramic',
       1: 'Left to right',
       2: 'Right to left',
@@ -41,12 +42,12 @@ class makernote_olympus extends tags_base {
     return sprintf('%s - sequence %d - %s', [mode1[v[0]], v[1], mode2[v[2]]]);
   }
 
-  static Map<int, MakerTag> _build_tags() {
+  static Map<int, MakerTag> _buildTags() {
     return {
       // ah HAH! those sneeeeeaky bastids! this is how they get past the fact
       // that a JPEG thumbnail is not allowed in an uncompressed TIFF file
       0x0100: _make('JPEGThumbnail'),
-      0x0200: _withFunc('SpecialMode', _special_mode),
+      0x0200: _withFunc('SpecialMode', _specialMode),
       0x0201: _withMap('JPEGQual', {
         1: 'SQ',
         2: 'HQ',
@@ -59,7 +60,7 @@ class makernote_olympus extends tags_base {
       0x0206: _make('LensDistortionParams'),
       0x0207: _make('SoftwareRelease'),
       0x0208: _make('PictureInfo'),
-      0x0209: _withFunc('CameraID', make_string), // print as string
+      0x0209: _withFunc('CameraID', makeString), // print as string
       0x0F00: _make('DataDump'),
       0x0300: _make('PreCaptureFrames'),
       0x0404: _make('SerialNumber'),
