@@ -13,7 +13,9 @@ void main() {
     await for (final msg in channel.stream) {
       final file = SampleFile.fromJson(
           json.decode(msg as String) as Map<String, dynamic>);
-      expect(await printExifOfBytes(file.getContent()), equals(file.dump));
+      print(file.name);
+      expect(await printExifOfBytes(file.getContent()), equals(file.dump),
+          reason: "file=${file.name}");
     }
   }, timeout: Timeout.parse("60s"));
 }
