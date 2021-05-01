@@ -2,7 +2,7 @@
 import 'package:exif/exif.dart';
 import 'package:test/test.dart';
 
-import 'test_util.dart';
+import 'read_samples.dart';
 
 Future main() async {
   await for (final file in readSamples()) {

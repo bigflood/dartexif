@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import "package:stream_channel/stream_channel.dart";
 
-import 'test_util.dart';
+import 'read_samples.dart';
 
 Future hybridMain(StreamChannel channel) async {
   await for (final file in readSamples()) {
