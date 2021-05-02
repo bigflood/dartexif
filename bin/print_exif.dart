@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:exif/exif.dart';
 
-// Show command line usage.
 void usage(int exitStatus) {
   const msg = 'Usage: EXIF [OPTIONS] file1 [file2 ...]\n'
-      'Extract EXIF information from digital camera image files.\n\nOptions:\n'
+      'Extract EXIF information from digital camera image files.\n'
+      '\n'
+      'Options:\n'
       '-h --help               Display usage information and exit.\n'
       '-q --quick              Do not process MakerNotes.\n'
       '-t TAG --stop-tag TAG   Stop processing when this tag is retrieved.\n'
@@ -16,7 +17,6 @@ void usage(int exitStatus) {
   exit(exitStatus);
 }
 
-// Parse command line options/arguments and execute.
 Future main(List<String> arguments) async {
   exitCode = 0;
 
@@ -60,6 +60,6 @@ Future main(List<String> arguments) async {
     final fileBytes = File(filename).readAsBytesSync();
 
     print(await printExifOfBytes(fileBytes,
-        stop_tag: stopTag, details: detailed, strict: strict, debug: debug));
+        stopTag: stopTag, details: detailed, strict: strict, debug: debug));
   }
 }

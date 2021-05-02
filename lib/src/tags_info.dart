@@ -1,4 +1,4 @@
-typedef MakerTagFunc = String? Function(List<int> list);
+typedef MakerTagFunc = String Function(List<int> list);
 
 class MakerTag {
   String name;

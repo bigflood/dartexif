@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart' show ListEquality;
 import 'package:sprintf/sprintf.dart' show sprintf;
 
-bool? listRangeEqual(List list1, int begin, int end, List list2) {
+bool listRangeEqual(List list1, int begin, int end, List list2) {
   var beginIndex = begin >= 0 ? begin : 0;
   beginIndex = beginIndex < list1.length ? beginIndex : list1.length;
 
@@ -14,6 +14,16 @@ bool? listRangeEqual(List list1, int begin, int end, List list2) {
 }
 
 final listEqual = const ListEquality().equals;
+
+bool listHasPrefix(List list, List prefix, {int start = 0}) {
+  if (prefix.isEmpty) {
+    return true;
+  }
+  if (list.length - start < prefix.length) {
+    return false;
+  }
+  return listEqual(list.sublist(start, start + prefix.length), prefix);
+}
 
 bool listContainedIn<T>(List<T> a, List<List<T>> b) =>
     b.any((i) => listEqual(i, a));

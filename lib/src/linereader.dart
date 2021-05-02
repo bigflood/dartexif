@@ -1,57 +1,56 @@
 import 'dart:convert';
+
 import 'file_interface.dart';
 
 class LineReader {
   FileReader file;
-  List<int>? buffer;
-  bool endOfFile = false;
+  final List<int> _buffer = [];
+  bool _endOfFile = false;
 
   LineReader(this.file);
 
   String popString(int n) {
     String s;
 
-    if (n < buffer!.length) {
-      s = utf8.decode(buffer!.sublist(0, n));
-      buffer!.removeRange(0, n);
+    if (n < _buffer.length) {
+      s = utf8.decode(_buffer.sublist(0, n));
+      _buffer.removeRange(0, n);
     } else {
-      s = utf8.decode(buffer!);
-      buffer!.clear();
+      s = utf8.decode(_buffer);
+      _buffer.clear();
     }
 
     return s;
   }
 
   String readLine() {
-    buffer ??= [];
-
-    int endOfLine = buffer!.indexOf(10);
+    int endOfLine = _buffer.indexOf(10);
     if (endOfLine >= 0) {
       return popString(endOfLine + 1);
     }
 
-    if (endOfFile) {
-      return popString(buffer!.length);
+    if (_endOfFile) {
+      return popString(_buffer.length);
     }
 
     while (true) {
       final r = file.readSync(1024 * 10);
 
       if (r.isEmpty) {
-        endOfFile = true;
+        _endOfFile = true;
         endOfLine = -1;
       } else {
         endOfLine = r.indexOf(10);
-        buffer!.addAll(r);
+        _buffer.addAll(r);
         if (endOfLine >= 0) {
-          endOfLine += buffer!.length;
+          endOfLine += _buffer.length;
         }
       }
 
       if (endOfLine >= 0) {
         return popString(endOfLine + 1);
-      } else if (endOfFile) {
-        return popString(buffer!.length);
+      } else if (_endOfFile) {
+        return popString(_buffer.length);
       }
     }
   }

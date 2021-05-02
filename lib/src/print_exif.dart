@@ -1,33 +1,37 @@
+import 'file_interface.dart';
 import 'read_exif.dart';
 
 Future<String> printExifOfBytes(List<int> bytes,
-    // ignore: non_constant_identifier_names
-    {String? stop_tag,
+    {String? stopTag,
     bool details = true,
     bool strict = false,
     bool debug = false}) async {
-  final data = await readExifFromBytes(bytes, stop_tag: stop_tag);
+  final data =
+      readExifFromFileReader(FileReader.fromBytes(bytes), stopTag: stopTag);
 
-  if (data == null || data.isEmpty) {
+  if (data.tags.isEmpty) {
     return "No EXIF information found";
   }
 
   final prints = [];
 
-  if (data.containsKey('JPEGThumbnail')) {
+  // prints.addAll(data.warnings);
+
+  if (data.tags.containsKey('JPEGThumbnail')) {
     prints.add('File has JPEG thumbnail');
-    data.remove('JPEGThumbnail');
+    data.tags.remove('JPEGThumbnail');
   }
-  if (data.containsKey('TIFFThumbnail')) {
+  if (data.tags.containsKey('TIFFThumbnail')) {
     prints.add('File has TIFF thumbnail');
-    data.remove('TIFFThumbnail');
+    data.tags.remove('TIFFThumbnail');
   }
 
-  final List<String?> tagKeys = data.keys.toList();
+  final tagKeys = data.tags.keys.toList();
   tagKeys.sort();
 
   for (final key in tagKeys) {
-    prints.add("$key (${data[key]!.tagType}): ${data[key]}");
+    final tag = data.tags[key];
+    prints.add("$key (${tag!.tagType}): $tag");
   }
 
   return prints.join("\n");

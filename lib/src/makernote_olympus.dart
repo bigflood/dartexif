@@ -9,13 +9,15 @@ class MakerNoteOlympus extends TagsBase {
   static Map<int, MakerTag> tags = _buildTags();
 
   static MakerTag _make(String name) => MakerTag.make(name);
+
   static MakerTag _withMap(String name, Map<int, String> map) =>
       MakerTag.makeWithMap(name, map);
+
   static MakerTag _withFunc(String name, MakerTagFunc func) =>
       MakerTag.makeWithFunc(name, func);
 
   // decode Olympus SpecialMode tag in MakerNote
-  static String? _specialMode(List<int> v) {
+  static String _specialMode(List<int> v) {
     final Map<int, String> mode1 = {
       0: 'Normal',
       1: 'Unknown',
@@ -60,7 +62,8 @@ class MakerNoteOlympus extends TagsBase {
       0x0206: _make('LensDistortionParams'),
       0x0207: _make('SoftwareRelease'),
       0x0208: _make('PictureInfo'),
-      0x0209: _withFunc('CameraID', makeString), // print as string
+      0x0209: _withFunc('CameraID', makeString),
+      // print as string
       0x0F00: _make('DataDump'),
       0x0300: _make('PreCaptureFrames'),
       0x0404: _make('SerialNumber'),
