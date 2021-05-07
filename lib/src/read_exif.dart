@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'heic.dart';
 import 'exif_types.dart';
 import 'exifheader.dart';
 import 'file_interface.dart';
+import 'heic.dart';
 import 'linereader.dart';
 import 'util.dart';
 
