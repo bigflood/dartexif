@@ -1,34 +1,25 @@
-typedef String? MakerTagFunc(List<int> list);
+typedef MakerTagFunc = String? Function(List<int> list);
 
 class MakerTag {
-  String? name;
+  String name;
   Map<int, String>? map;
   MakerTagFunc? func;
   MakerTagsWithName? tags;
 
-  MakerTag({this.name, this.map, this.func, this.tags});
+  MakerTag.make(this.name);
 
-  static MakerTag make(name) {
-    return new MakerTag(name: name);
-  }
+  MakerTag.makeWithMap(this.name, this.map);
 
-  static MakerTag makeWithMap(name, map) {
-    return new MakerTag(name: name, map: map);
-  }
+  MakerTag.makeWithFunc(this.name, this.func);
 
-  static MakerTag makeWithFunc(name, MakerTagFunc func) {
-    return new MakerTag(name: name, func: func);
-  }
-
-  static MakerTag makeWithTags(name, tags) {
-    return new MakerTag(name: name, tags: tags);
-  }
+  MakerTag.makeWithTags(this.name, this.tags);
 }
 
 class MakerTagsWithName {
-  String? name;
-  Map<int, MakerTag>? tags;
-  MakerTagsWithName({this.name, this.tags});
+  String name;
+  Map<int, MakerTag> tags;
+
+  MakerTagsWithName({this.name = "", this.tags = const {}});
 }
 
-class tags_base {}
+class TagsBase {}

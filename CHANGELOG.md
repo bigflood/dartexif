@@ -1,3 +1,7 @@
+## 2.1.0
+
+- fixed some minor issues
+
 ## 2.0.0
 
 - migrate to null-safety

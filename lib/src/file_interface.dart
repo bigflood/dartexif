@@ -10,22 +10,20 @@ abstract class FileReader {
   }
 
   factory FileReader.fromBytes(List<int>? bytes) {
-    return new _BytesReader(bytes);
+    return _BytesReader(bytes);
   }
 
   int readByteSync();
   List<int> readSync(int bytes);
   int positionSync();
-  setPositionSync(int position);
+  void setPositionSync(int position);
 }
 
 class _BytesReader implements FileReader {
   List<int>? bytes;
   int readPos = 0;
 
-  _BytesReader(List<int>? bytes) {
-    this.bytes = bytes;
-  }
+  _BytesReader(this.bytes);
 
   @override
   int positionSync() {
@@ -39,18 +37,18 @@ class _BytesReader implements FileReader {
 
   @override
   List<int> readSync(int n) {
-    var start = readPos;
+    final start = readPos;
     var end = readPos + n;
     if (end > bytes!.length) {
       end = bytes!.length;
     }
-    var r = bytes!.sublist(start, end);
+    final r = bytes!.sublist(start, end);
     readPos += end - start;
     return r;
   }
 
   @override
-  setPositionSync(int position) {
+  void setPositionSync(int position) {
     readPos = position;
   }
 }

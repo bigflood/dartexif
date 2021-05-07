@@ -1,14 +1,13 @@
 import 'dart:async';
 
-import 'package:exif/src/heic.dart';
-
-import 'exifheader.dart';
-import 'util.dart';
-import 'linereader.dart';
+import 'heic.dart';
 import 'exif_types.dart';
+import 'exifheader.dart';
 import 'file_interface.dart';
+import 'linereader.dart';
+import 'util.dart';
 
-int? _increment_base(data, base) {
+int? _incrementBase(List<int> data, int base) {
   return (data[base + 2]) * 256 + (data[base + 3]) + 2;
 }
 
@@ -16,36 +15,38 @@ int? _increment_base(data, base) {
 // This is the function that has to deal with all the arbitrary nasty bits
 // of the EXIF standard.
 Future<Map<String?, IfdTag>?> readExifFromBytes(List<int> bytes,
+    // ignore: non_constant_identifier_names
     {String? stop_tag,
     bool details = true,
     bool strict = false,
     bool debug = false,
+    // ignore: non_constant_identifier_names
     bool truncate_tags = true}) async {
-  var r = await readExifFromFileReader(new FileReader.fromBytes(bytes),
-      stop_tag: stop_tag,
+  return readExifFromFileReader(FileReader.fromBytes(bytes),
+      stopTag: stop_tag,
       details: details,
       strict: strict,
       debug: debug,
-      truncate_tags: truncate_tags);
-
-  return r;
+      truncateTags: truncate_tags);
 }
 
 // Streaming version of [readExifFromBytes].
 Future<Map<String?, IfdTag>?> readExifFromFile(dynamic file,
+    // ignore: non_constant_identifier_names
     {String? stop_tag,
     bool details = true,
     bool strict = false,
     bool debug = false,
+    // ignore: non_constant_identifier_names
     bool truncate_tags = true}) async {
   final randomAccessFile = file.openSync();
-  var fileReader = await FileReader.fromFile(randomAccessFile);
-  var r = await readExifFromFileReader(fileReader,
-      stop_tag: stop_tag,
+  final fileReader = await FileReader.fromFile(randomAccessFile);
+  final r = readExifFromFileReader(fileReader,
+      stopTag: stop_tag,
       details: details,
       strict: strict,
       debug: debug,
-      truncate_tags: truncate_tags);
+      truncateTags: truncate_tags);
   randomAccessFile.closeSync();
   return r;
 }
@@ -54,52 +55,53 @@ Future<Map<String?, IfdTag>?> readExifFromFile(dynamic file,
 // This is the function that has to deal with all the arbitrary nasty bits
 // of the EXIF standard.
 Map<String?, IfdTag>? readExifFromFileReader(FileReader f,
-    {String? stop_tag,
+    {String? stopTag,
     bool details = true,
     bool strict = false,
     bool debug = false,
-    bool truncate_tags = true}) {
+    bool truncateTags = true}) {
   // by default do not fake an EXIF beginning
-  bool fake_exif = false;
+  bool fakeExif = false;
   int endian;
   int offset, base;
   int? increment;
 
   // determine whether it's a JPEG or TIFF
   List<int> data = f.readSync(12);
-  if (list_in(data.sublist(0, 4), ['II*\x00'.codeUnits, 'MM\x00*'.codeUnits])) {
+  if (listContainedIn(
+      data.sublist(0, 4), ['II*\x00'.codeUnits, 'MM\x00*'.codeUnits])) {
     // it's a TIFF file
     // print("TIFF format recognized in data[0:4]");
     f.setPositionSync(0);
     endian = f.readByteSync();
     f.readSync(1);
     offset = 0;
-  } else if (list_range_eq(data, 4, 12, 'ftypheic'.codeUnits)!) {
+  } else if (listRangeEqual(data, 4, 12, 'ftypheic'.codeUnits)!) {
     f.setPositionSync(0);
     final heic = HEICExifFinder(f);
     final res = heic.findExif();
     offset = res[0];
     endian = res[1];
-  } else if (list_range_eq(data, 0, 2, '\xFF\xD8'.codeUnits)!) {
+  } else if (listRangeEqual(data, 0, 2, '\xFF\xD8'.codeUnits)!) {
     // it's a JPEG file
     //print("** JPEG format recognized data[0:2]= (0x${data[0]}, ${data[1]})");
     base = 2;
     //print("** data[2]=${data[2]} data[3]=${data[3]} data[6:10]=${data.sublist(6,10)}");
     while (data[2] == 0xFF &&
-        list_in(data.sublist(6, 10), [
+        listContainedIn(data.sublist(6, 10), [
           'JFIF'.codeUnits,
           'JFXX'.codeUnits,
           'OLYM'.codeUnits,
           'Phot'.codeUnits
         ])) {
-      int length = data[4] * 256 + data[5];
+      final length = data[4] * 256 + data[5];
       // printf("** Length offset is %d", [length]);
       f.readSync(length - 8);
       // fake an EXIF beginning of file
       // I don't think this is used. --gd
       data = [0xFF, 0x00];
       data.addAll(f.readSync(10));
-      fake_exif = true;
+      fakeExif = true;
       if (base > 2) {
         // print("** Added to base");
         base = base + length + 4 - 2;
@@ -124,69 +126,69 @@ Map<String?, IfdTag>? readExifFromFileReader(FileReader f,
       // if (data.length == 4020) {
       //   print("**  data.length=${data.length}, base=$base");
       // }
-      if (list_range_eq(data, base, base + 2, [0xFF, 0xE1])!) {
+      if (listRangeEqual(data, base, base + 2, [0xFF, 0xE1])!) {
         // APP1
         // print("**   APP1 at base $base");
         // print("**   Length: (${data[base + 2]}, ${data[base + 3]})");
         // print("**   Code: ${new String.fromCharCodes(data.sublist(base + 4,base + 8))}");
-        if (list_range_eq(data, base + 4, base + 8, "Exif".codeUnits)!) {
+        if (listRangeEqual(data, base + 4, base + 8, "Exif".codeUnits)!) {
           // print("**  Decrement base by 2 to get to pre-segment header (for compatibility with later code)");
           base -= 2;
           break;
         }
-        increment = _increment_base(data, base);
+        increment = _incrementBase(data, base);
         // print("** Increment base by $increment");
         base += increment!;
-      } else if (list_range_eq(data, base, base + 2, [0xFF, 0xE0])!) {
+      } else if (listRangeEqual(data, base, base + 2, [0xFF, 0xE0])!) {
         // APP0
         // print("**  APP0 at base $base");
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("**  Code: %s", [data.sublist(base + 4, base + 8)]);
-        increment = _increment_base(data, base);
+        increment = _incrementBase(data, base);
         // print("** Increment base by $increment");
         base += increment!;
-      } else if (list_range_eq(data, base, base + 2, [0xFF, 0xE2])!) {
+      } else if (listRangeEqual(data, base, base + 2, [0xFF, 0xE2])!) {
         // APP2
         // printf("**  APP2 at base 0x%X", [base]);
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("** Code: %s", [data.sublist(base + 4,base + 8)]);
-        increment = _increment_base(data, base);
+        increment = _incrementBase(data, base);
         // print("** Increment base by $increment");
         base += increment!;
-      } else if (list_range_eq(data, base, base + 2, [0xFF, 0xEE])!) {
+      } else if (listRangeEqual(data, base, base + 2, [0xFF, 0xEE])!) {
         // APP14
         // printf("**  APP14 Adobe segment at base 0x%X", [base]);
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("**  Code: %s", [data.sublist(base + 4,base + 8)]);
-        increment = _increment_base(data, base);
+        increment = _incrementBase(data, base);
         // print("** Increment base by $increment");
         base += increment!;
         // print("**  There is useful EXIF-like data here, but we have no parser for it.");
-      } else if (list_range_eq(data, base, base + 2, [0xFF, 0xDB])!) {
+      } else if (listRangeEqual(data, base, base + 2, [0xFF, 0xDB])!) {
         // printf("**  JPEG image data at base 0x%X No more segments are expected.", [base]);
         break;
-      } else if (list_range_eq(data, base, base + 2, [0xFF, 0xD8])!) {
+      } else if (listRangeEqual(data, base, base + 2, [0xFF, 0xD8])!) {
         // APP12
         // printf("**  FFD8 segment at base 0x%X", [base]);
         // printf("**  Got 0x%X 0x%X and %s instead", [data[base], data[base + 1], data.sublist(4 + base,10 + base)]);
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("**  Code: %s", [data.sublist(base + 4,base + 8)]);
-        increment = _increment_base(data, base);
+        increment = _incrementBase(data, base);
         // print("** Increment base by $increment");
         base += increment!;
-      } else if (list_range_eq(data, base, base + 2, [0xFF, 0xEC])!) {
+      } else if (listRangeEqual(data, base, base + 2, [0xFF, 0xEC])!) {
         // APP12
         // printf("**  APP12 XMP (Ducky) or Pictureinfo segment at base 0x%X", [base]);
         // printf("**  Got 0x%X and 0x%X instead", [data[base], data[base + 1]]);
         // printf("**  Length: 0x%X 0x%X", [data[base + 2], data[base + 3]]);
         // printf("** Code: %s", [data.sublist(base + 4,base + 8)]);
-        increment = _increment_base(data, base);
+        increment = _incrementBase(data, base);
         // print("** Increment base by $increment");
         base += increment!;
         // print("**  There is useful EXIF-like data here (quality, comment, copyright), but we have no parser for it.");
       } else {
         try {
-          increment = _increment_base(data, base);
+          increment = _incrementBase(data, base);
           // printf("**  Got 0x%X and 0x%X instead", [data[base], data[base + 1]]);
         } on RangeError {
           // throw new FormatException("Unexpected/unhandled segment type or file content.");
@@ -200,20 +202,20 @@ Map<String?, IfdTag>? readExifFromFileReader(FileReader f,
 
     f.setPositionSync(base + 12);
     if (data[2 + base] == 0xFF &&
-        list_range_eq(data, 6 + base, 10 + base, 'Exif'.codeUnits)!) {
+        listRangeEqual(data, 6 + base, 10 + base, 'Exif'.codeUnits)!) {
       // detected EXIF header
       offset = f.positionSync();
       endian = f.readByteSync();
       //HACK TEST:  endian = 'M'
     } else if (data[2 + base] == 0xFF &&
-        list_range_eq(data, 6 + base, 10 + base + 1, 'Ducky'.codeUnits)!) {
+        listRangeEqual(data, 6 + base, 10 + base + 1, 'Ducky'.codeUnits)!) {
       // detected Ducky header.
       // printf("** EXIF-like header (normally 0xFF and code): 0x%X and %s",
       //              [data[2 + base], data.sublist(6 + base,10 + base + 1)]);
       offset = f.positionSync();
       endian = f.readByteSync();
     } else if (data[2 + base] == 0xFF &&
-        list_range_eq(data, 6 + base, 10 + base + 1, 'Adobe'.codeUnits)!) {
+        listRangeEqual(data, 6 + base, 10 + base + 1, 'Adobe'.codeUnits)!) {
       // detected APP14 (Adobe);
       // printf("** EXIF-like header (normally 0xFF and code): 0x%X and %s",
       //              [data[2 + base], data.sublist(6 + base,10 + base + 1)]);
@@ -241,97 +243,105 @@ Map<String?, IfdTag>? readExifFromFileReader(FileReader f,
   //     'd'.codeUnitAt(0): 'XMP/Adobe unknown'
   // }[endian]})");
 
-  ExifHeader hdr = new ExifHeader(
-      f, endian, offset, fake_exif, strict, debug, details, truncate_tags);
-  List<int> ifd_list = hdr.list_ifd();
-  int thumb_ifd = 0;
-  int ctr = 0;
-  String ifd_name;
+  final hdr = ExifHeader(
+      file: f,
+      endian: endian,
+      offset: offset,
+      fakeExif: fakeExif,
+      strict: strict,
+      debug: debug,
+      detailed: details,
+      truncateTags: truncateTags);
 
-  for (var ifd in ifd_list) {
+  final ifdList = hdr.listIfd();
+  int thumbIfd = 0;
+  int ctr = 0;
+  String ifdName;
+
+  for (final ifd in ifdList) {
     if (ctr == 0) {
-      ifd_name = 'Image';
+      ifdName = 'Image';
     } else if (ctr == 1) {
-      ifd_name = 'Thumbnail';
-      thumb_ifd = ifd;
+      ifdName = 'Thumbnail';
+      thumbIfd = ifd;
     } else {
-      ifd_name = 'IFD ' + ctr.toString();
+      ifdName = 'IFD $ctr';
     }
     // print('** IFD $ctr ($ifd_name) at offset $ifd');
-    hdr.dump_ifd(ifd, ifd_name, stop_tag: stop_tag);
+    hdr.dumpIfd(ifd, ifdName, stopTag: stopTag);
     ctr += 1;
   }
   // EXIF IFD
-  IfdTagImpl? exif_off = hdr.tags!['Image ExifOffset'] as IfdTagImpl?;
-  if (exif_off != null && ![1, 2, 5, 6, 10].contains(exif_off.field_type)) {
+  final exifOff = hdr.tags['Image ExifOffset'] as IfdTagImpl?;
+  if (exifOff != null && ![1, 2, 5, 6, 10].contains(exifOff.fieldType)) {
     // print('** Exif SubIFD at offset ${exif_off.values[0]}:');
-    hdr.dump_ifd(exif_off.values![0], 'EXIF', stop_tag: stop_tag);
+    hdr.dumpIfd(exifOff.values![0] as int, 'EXIF', stopTag: stopTag);
   }
 
   // deal with MakerNote contained in EXIF IFD
   // (Some apps use MakerNote tags but do not use a format for which we
   // have a description, do not process these).
   if (details &&
-      hdr.tags!.containsKey('EXIF MakerNote') &&
-      hdr.tags!.containsKey('Image Make')) {
-    hdr.decode_maker_note();
+      hdr.tags.containsKey('EXIF MakerNote') &&
+      hdr.tags.containsKey('Image Make')) {
+    hdr.decodeMakerNote();
   }
 
   // extract thumbnails
-  if (details && thumb_ifd != 0) {
-    hdr.extract_tiff_thumbnail(thumb_ifd);
-    hdr.extract_jpeg_thumbnail();
+  if (details && thumbIfd != 0) {
+    hdr.extractTiffThumbnail(thumbIfd);
+    hdr.extractJpegThumbnail();
   }
 
   // parse XMP tags (experimental)
   if (debug && details) {
-    String xmp_string = '';
+    String xmpString = '';
     // Easy we already have them
-    if (hdr.tags!.containsKey('Image ApplicationNotes')) {
+    if (hdr.tags.containsKey('Image ApplicationNotes')) {
       // print('** XMP present in Exif');
-      xmp_string =
-          make_string(hdr.tags!['Image ApplicationNotes']!.values as List<int>);
+      xmpString =
+          makeString(hdr.tags['Image ApplicationNotes']!.values! as List<int>);
       // We need to look in the entire file for the XML
     } else {
       // print('** XMP not in Exif, searching file for XMP info...');
-      bool xml_started = false;
-      bool xml_finished = false;
-      LineReader reader = new LineReader(f);
+      bool xmlStarted = false;
+      bool xmlFinished = false;
+      final reader = LineReader(f);
       while (true) {
-        String line = reader.readline();
+        String line = reader.readLine();
         if (line.isEmpty) break;
 
-        int open_tag = line.indexOf('<x:xmpmeta');
-        int close_tag = line.indexOf('</x:xmpmeta>');
+        final openTag = line.indexOf('<x:xmpmeta');
+        final closeTag = line.indexOf('</x:xmpmeta>');
 
-        if (open_tag != -1) {
-          xml_started = true;
-          line = line.substring(open_tag);
+        if (openTag != -1) {
+          xmlStarted = true;
+          line = line.substring(openTag);
           // printf('** XMP found opening tag at line position %s', [open_tag]);
         }
 
-        if (close_tag != -1) {
+        if (closeTag != -1) {
           // printf('** XMP found closing tag at line position %s', [close_tag]);
-          int line_offset = 0;
-          if (open_tag != -1) {
-            line_offset = open_tag;
+          int lineOffset = 0;
+          if (openTag != -1) {
+            lineOffset = openTag;
           }
-          line = line.substring(0, (close_tag - line_offset) + 12);
-          xml_finished = true;
+          line = line.substring(0, (closeTag - lineOffset) + 12);
+          xmlFinished = true;
         }
 
-        if (xml_started) {
-          xmp_string += line;
+        if (xmlStarted) {
+          xmpString += line;
         }
 
-        if (xml_finished) {
+        if (xmlFinished) {
           break;
         }
       }
 
       // print('** XMP Finished searching for info');
-      if (xmp_string.isNotEmpty) {
-        hdr.parse_xmp(xmp_string);
+      if (xmpString.isNotEmpty) {
+        hdr.parseXmp(xmpString);
       }
     }
   }

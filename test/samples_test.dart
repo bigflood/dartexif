@@ -1,13 +1,14 @@
 @TestOn("vm")
-
+import 'package:exif/exif.dart';
 import 'package:test/test.dart';
-import 'test_util.dart';
-import 'samples_run.dart';
 
-main() async {
-  await for (var file in readSamples()) {
+import 'read_samples.dart';
+
+Future main() async {
+  await for (final file in readSamples()) {
     test(file.name, () async {
-      await runSamplesTest(file);
+      final exifDump = await printExifOfBytes(file.getContent());
+      expect(exifDump, equals(file.dump));
     });
   }
 }
