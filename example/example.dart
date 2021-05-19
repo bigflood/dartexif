@@ -10,7 +10,8 @@ Future main(List<String> arguments) async {
     final data = await readExifFromBytes(fileBytes);
 
     if (data.isEmpty) {
-      return "No EXIF information found";
+      print("No EXIF information found");
+      return;
     }
 
     if (data.containsKey('JPEGThumbnail')) {

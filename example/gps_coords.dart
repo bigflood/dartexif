@@ -9,7 +9,7 @@ Future main(List<String> arguments) async {
     final fileBytes = File(filename).readAsBytesSync();
     final data = await readExifFromBytes(fileBytes);
 
-    if (data == null || data.isEmpty) {
+    if (data.isEmpty) {
       print("No EXIF information found");
       return;
     }
@@ -37,18 +37,16 @@ Future main(List<String> arguments) async {
   }
 }
 
-double? gpsValuesToFloat(List? values) {
-  if (values == null) {
+double? gpsValuesToFloat(IfdValues? values) {
+  if (values == null || values is! IfdRatios) {
     return null;
   }
 
   double sum = 0.0;
   double unit = 1.0;
 
-  for (final v in values) {
-    if (v is Ratio) {
-      sum += (v.numerator / v.denominator) * unit;
-    }
+  for (final v in values.ratios) {
+    sum += v.toDouble() * unit;
     unit /= 60.0;
   }
 
