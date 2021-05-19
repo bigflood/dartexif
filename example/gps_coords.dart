@@ -46,9 +46,7 @@ double? gpsValuesToFloat(List? values) {
   double unit = 1.0;
 
   for (final v in values) {
-    if (v is int) {
-      sum += v * unit;
-    } else if (v is Ratio) {
+    if (v is Ratio) {
       sum += (v.numerator / v.denominator) * unit;
     }
     unit /= 60.0;
