@@ -134,6 +134,8 @@ class Ratio {
       (denominator == 1) ? '$numerator' : '$numerator/$denominator';
 
   int toInt() => numerator ~/ denominator;
+
+  double toDouble() => numerator / denominator;
 }
 
 class ExifData {
