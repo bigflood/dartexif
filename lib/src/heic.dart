@@ -254,7 +254,7 @@ class HEICExifFinder {
     assert(ftyp.minorVersion == 0);
     final meta = expectParse('meta');
     assert(meta.subs['iinf']!.exifInfe != null);
-    final itemId = meta.subs['iinf']!.exifInfe.item_id;
+    final itemId = meta.subs['iinf']!.exifInfe.itemId;
     final extents = meta.subs['iloc']!.locs[itemId];
     // we expect the Exif data to be in one piece.
     assert(extents.length == 1);
