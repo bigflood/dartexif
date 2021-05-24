@@ -1,8 +1,8 @@
 name: exif
-version: 2.1.0
+version: 2.2.0
 description: >-
   Decode Exif metadata from digital image files.
-  Supported formats: tiff and jpeg
+  Supported formats: tiff, jpeg, HEIC
 homepage: https://www.github.com/bigflood/dartexif
 environment:
   sdk: '>=2.12.0 <3.0.0'
