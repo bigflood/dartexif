@@ -27,6 +27,6 @@ doc/api/
 pubspec.lock
 
 .dart_tool
-/test/data/*dump
+/test/data/*-dump
 /test/data/*.tar.gz
 .idea/

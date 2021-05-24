@@ -10,6 +10,23 @@ import 'package:path/path.dart' as p;
 import 'sample_file.dart';
 
 Stream<SampleFile> readSamples() async* {
+  yield* readIanareSamples();
+
+  yield await readSampleFile("test/data/heic-test.heic");
+}
+
+Future<SampleFile> readSampleFile(String filename) async {
+  final fileBytes = await io.File(filename).readAsBytes();
+  final dump = await io.File("$filename.dump").readAsString();
+
+  return SampleFile(
+    name: filename,
+    content: fileBytes,
+    dump: dump.trim(),
+  );
+}
+
+Stream<SampleFile> readIanareSamples() async* {
   const commit = "2a62d69683c154ffe03b4502bdfa3248d8a1b05c";
   final filenamePrefix = p.join("test", "data", "$commit-");
 

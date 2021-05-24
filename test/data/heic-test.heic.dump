@@ -1,0 +1,80 @@
+EXIF ApertureValue (Ratio): 4845/1918
+EXIF BrightnessValue (Signed Ratio): 7187/850
+EXIF ColorSpace (Short): Uncalibrated
+EXIF ComponentsConfiguration (Undefined): YCbCr
+EXIF CustomRendered (Short): 2
+EXIF DateTimeDigitized (ASCII): 2018:03:30 12:14:19
+EXIF DateTimeOriginal (ASCII): 2018:03:30 12:14:19
+EXIF ExifImageLength (Long): 3024
+EXIF ExifImageWidth (Long): 4032
+EXIF ExifVersion (Undefined): 0221
+EXIF ExposureBiasValue (Signed Ratio): 0
+EXIF ExposureMode (Short): Auto Exposure
+EXIF ExposureProgram (Short): Program Normal
+EXIF ExposureTime (Ratio): 1/209
+EXIF FNumber (Ratio): 12/5
+EXIF Flash (Short): Flash did not fire, compulsory flash mode
+EXIF FlashPixVersion (Undefined): 0100
+EXIF FocalLength (Ratio): 6
+EXIF FocalLengthIn35mmFilm (Short): 52
+EXIF ISOSpeedRatings (Short): 16
+EXIF LensMake (ASCII): Apple
+EXIF LensModel (ASCII): iPhone X back dual camera 6mm f/2.4
+EXIF LensSpecification (Ratio): [4, 6, 9/5, 12/5]
+EXIF MakerNote (Undefined): [65, 112, 112, 108, 101, 32, 105, 79, 83, 0, 0, 1, 77, 77, 0, 21, 0, 1, 0, 9, ... ]
+EXIF MeteringMode (Short): Pattern
+EXIF SceneCaptureType (Short): Standard
+EXIF SceneType (Undefined): Directly Photographed
+EXIF SensingMethod (Short): One-chip color area
+EXIF ShutterSpeedValue (Signed Ratio): 7789/1011
+EXIF SubSecTimeDigitized (ASCII): 365
+EXIF SubSecTimeOriginal (ASCII): 365
+EXIF SubjectArea (Short): [2007, 1503, 2209, 1327]
+EXIF WhiteBalance (Short): Auto
+GPS GPSAltitude (Ratio): 6568/1433
+GPS GPSAltitudeRef (Byte): 0
+GPS GPSDate (ASCII): 2018:03:30
+GPS GPSDestBearing (Ratio): 21278/339
+GPS GPSDestBearingRef (ASCII): M
+GPS GPSImgDirection (Ratio): 21278/339
+GPS GPSImgDirectionRef (ASCII): M
+GPS GPSLatitude (Ratio): [37, 45, 907/25]
+GPS GPSLatitudeRef (ASCII): N
+GPS GPSLongitude (Ratio): [122, 30, 861/25]
+GPS GPSLongitudeRef (ASCII): W
+GPS GPSSpeed (Ratio): 5709/10354
+GPS GPSSpeedRef (ASCII): K
+GPS GPSTimeStamp (Ratio): [19, 14, 1813/100]
+GPS Tag 0x001F (Ratio): 6619/1103
+Image DateTime (ASCII): 2018:03:30 12:14:19
+Image ExifOffset (Long): 204
+Image GPSInfo (Long): 1818
+Image Make (ASCII): Apple
+Image Model (ASCII): iPhone X
+Image Orientation (Short): Rotated 180
+Image ResolutionUnit (Short): Pixels/Inch
+Image Software (ASCII): 12.0
+Image XResolution (Ratio): 72
+Image YCbCrPositioning (Short): Centered
+Image YResolution (Ratio): 72
+MakerNote HDRImageType (Signed Long): 2
+MakerNote Tag 0x0001 (Signed Long): 10
+MakerNote Tag 0x0002 (Undefined): [2, 1, 122, 0, 107, 0, 120, 0, 67, 0, 69, 0, 59, 0, 57, 0, 28, 1, 85, 2, ... ]
+MakerNote Tag 0x0003 (Undefined): [6, 7, 8, 85, 102, 108, 97, 103, 115, 85, 118, 97, 108, 117, 101, 89, 116, 105, 109, 101, ... ]
+MakerNote Tag 0x0004 (Signed Long): 1
+MakerNote Tag 0x0005 (Signed Long): 173
+MakerNote Tag 0x0006 (Signed Long): 170
+MakerNote Tag 0x0007 (Signed Long): 1
+MakerNote Tag 0x0008 (Signed Ratio): [-69926911/22675456, 22145/723, 256/7305]
+MakerNote Tag 0x000C (Signed Ratio): [2100775/105295456, 1/200]
+MakerNote Tag 0x000D (Signed Long): 25
+MakerNote Tag 0x000E (Signed Long): 4
+MakerNote Tag 0x0010 (Signed Long): 1
+MakerNote Tag 0x0014 (Signed Long): 3
+MakerNote Tag 0x0017 (Signed Long): 2048
+MakerNote Tag 0x0019 (Signed Long): 34
+MakerNote Tag 0x001A (ASCII): C55AB7
+MakerNote Tag 0x001D (Signed Ratio): 218813911/175351561
+MakerNote Tag 0x001F (Signed Long): 1
+MakerNote Tag 0x0020 (ASCII): 48FC-9F8C-9CCF675F4C62
+MakerNote Tag 0x0021 (Signed Ratio): 1/6
