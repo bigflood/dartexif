@@ -3,7 +3,7 @@
 [![Pub Package](https://img.shields.io/pub/v/exif.svg)](https://pub.dev/packages/exif)
 [![Dart CI](https://github.com/bigflood/dartexif/actions/workflows/dart.yml/badge.svg)](https://github.com/bigflood/dartexif/actions/workflows/dart.yml)
 
-Dart module to decode Exif data from tiff and jpeg files.
+Dart module to decode Exif data from tiff, jpeg and heic files.
 
 Dart port of ianaré sévi's EXIF library: <https://github.com/ianare/exif-py>.
 
