@@ -1,3 +1,11 @@
+## 3.0.0
+
+- Breaking API Changes
+  - Changed nullable type to non-nullable type if possible
+  - Changed some parameters to camel-case
+  - Added IfdValues and it's subtypes
+  - IfdTag.values is now IfdValues type
+
 ## 2.2.0
 
 - Add HEIC support
