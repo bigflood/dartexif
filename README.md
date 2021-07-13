@@ -13,24 +13,25 @@ Dart port of ianaré sévi's EXIF library: <https://github.com/ianare/exif-py>.
 ```dart
 printExifOf(String path) async {
 
-  Map<String, IfdTag> data = readExifFromBytes(await new File(path).readAsBytes());
+  final fileBytes = File(path).readAsBytesSync();
+  final data = await readExifFromBytes(fileBytes);
 
-  if (data == null || data.isEmpty) {
-    printFunc("No EXIF information found\n");
+  if (data.isEmpty) {
+    print("No EXIF information found");
     return;
   }
 
   if (data.containsKey('JPEGThumbnail')) {
-    printFunc('File has JPEG thumbnail');
+    print('File has JPEG thumbnail');
     data.remove('JPEGThumbnail');
   }
   if (data.containsKey('TIFFThumbnail')) {
-    printFunc('File has TIFF thumbnail');
+    print('File has TIFF thumbnail');
     data.remove('TIFFThumbnail');
   }
 
-  for (String key in data.keys) {
-    printFunc("$key (${data[key].tagType}): ${data[key]}");
+  for (final entry in data.entries) {
+    print("${entry.key}: ${entry.value}");
   }
   
 }
