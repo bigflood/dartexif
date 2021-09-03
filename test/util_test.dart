@@ -1,5 +1,5 @@
-import "package:test/test.dart";
 import 'package:exif/src/util.dart';
+import "package:test/test.dart";
 
 void main() {
   test("make_string_uc", () {

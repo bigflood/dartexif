@@ -18,7 +18,8 @@ class Thumbnail {
     }
 
     List<int> tiff;
-    int stripOff = 0, stripLen = 0;
+    int stripOff = 0;
+    int stripLen = 0;
 
     final entries = file.readInt(thumbIfd, 2);
     // this is header plus offset to IFD ...

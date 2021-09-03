@@ -110,7 +110,8 @@ class IfdBytes extends IfdValues {
 /// Ratio object that eventually will be able to reduce itself to lowest
 /// common denominator for printing.
 class Ratio {
-  final int numerator, denominator;
+  final int numerator;
+  final int denominator;
 
   factory Ratio(int num, int den) {
     if (den < 0) {
