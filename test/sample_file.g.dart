@@ -6,12 +6,10 @@ part of 'sample_file.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-SampleFile _$SampleFileFromJson(Map<String, dynamic> json) {
-  return SampleFile(
-    name: json['name'] as String,
-    dump: json['dump'] as String?,
-  )..encodedContent = json['encodedContent'] as String;
-}
+SampleFile _$SampleFileFromJson(Map<String, dynamic> json) => SampleFile(
+      name: json['name'] as String? ?? "",
+      dump: json['dump'] as String? ?? "",
+    )..encodedContent = json['encodedContent'] as String;
 
 Map<String, dynamic> _$SampleFileToJson(SampleFile instance) =>
     <String, dynamic>{
