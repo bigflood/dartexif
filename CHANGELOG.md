@@ -1,3 +1,9 @@
+## 3.0.1
+
+- add time offset tag names
+  - OffsetTime, OffsetTimeOriginal, OffsetTimeDigitized
+- upgrade dependencies
+
 ## 3.0.0
 
 - Breaking API Changes
