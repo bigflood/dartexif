@@ -254,6 +254,9 @@ class StandardTags extends TagsBase {
     0x9000: _withFunc('ExifVersion', makeString),
     0x9003: _make('DateTimeOriginal'),
     0x9004: _make('DateTimeDigitized'),
+    0x9010: _make('OffsetTime'),
+    0x9011: _make('OffsetTimeOriginal'),
+    0x9012: _make('OffsetTimeDigitized'),
     0x9101: _withMap('ComponentsConfiguration', const {
       0: '',
       1: 'Y',
