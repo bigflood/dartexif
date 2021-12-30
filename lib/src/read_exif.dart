@@ -182,8 +182,10 @@ void _parseXmpTags(FileReader f, ExifHeader hdr) {
   }
 }
 
-bool _isTiff(List<int> header) => listContainedIn(
-    header.sublist(0, 4), ['II*\x00'.codeUnits, 'MM\x00*'.codeUnits]);
+bool _isTiff(List<int> header) =>
+    header.length >= 4 &&
+    listContainedIn(
+        header.sublist(0, 4), ['II*\x00'.codeUnits, 'MM\x00*'.codeUnits]);
 
 bool _isHeic(List<int> header) =>
     listRangeEqual(header, 4, 12, 'ftypheic'.codeUnits);
@@ -207,7 +209,12 @@ ReadParams _jpegReadParams(FileReader f) {
   Endian endian;
 
   f.setPositionSync(0);
-  var data = f.readSync(12);
+
+  const headerLength = 12;
+  var data = f.readSync(headerLength);
+  if (data.length != headerLength) {
+    return ReadParams.error("File format not recognized.");
+  }
 
   var base = 2;
   while (data[2] == 0xFF &&

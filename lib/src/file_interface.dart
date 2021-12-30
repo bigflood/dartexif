@@ -38,6 +38,10 @@ class _BytesReader implements FileReader {
   @override
   List<int> readSync(int n) {
     final start = readPos;
+    if (start >= bytes.length) {
+      return [];
+    }
+
     var end = readPos + n;
     if (end > bytes.length) {
       end = bytes.length;
