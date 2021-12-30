@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
-import 'exif_types.dart';
-import 'field_types.dart';
-import 'file_interface.dart';
-import 'makernote_canon.dart';
-import 'util.dart';
+import 'package:exif/src/exif_types.dart';
+import 'package:exif/src/field_types.dart';
+import 'package:exif/src/file_interface.dart';
+import 'package:exif/src/makernote_canon.dart';
+import 'package:exif/src/util.dart';
 
 enum Endian {
   little,

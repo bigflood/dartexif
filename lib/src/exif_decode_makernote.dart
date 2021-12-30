@@ -1,14 +1,14 @@
-import 'exifheader.dart';
-import 'field_types.dart';
-import 'makernote_apple.dart';
-import 'makernote_canon.dart';
-import 'makernote_casio.dart';
-import 'makernote_fujifilm.dart';
-import 'makernote_nikon.dart';
-import 'makernote_olympus.dart';
-import 'reader.dart';
-import 'tags_info.dart';
-import 'util.dart';
+import 'package:exif/src/exifheader.dart';
+import 'package:exif/src/field_types.dart';
+import 'package:exif/src/makernote_apple.dart';
+import 'package:exif/src/makernote_canon.dart';
+import 'package:exif/src/makernote_casio.dart';
+import 'package:exif/src/makernote_fujifilm.dart';
+import 'package:exif/src/makernote_nikon.dart';
+import 'package:exif/src/makernote_olympus.dart';
+import 'package:exif/src/reader.dart';
+import 'package:exif/src/tags_info.dart';
+import 'package:exif/src/util.dart';
 
 class DecodeMakerNote {
   final Map<String, IfdTagImpl> tags;

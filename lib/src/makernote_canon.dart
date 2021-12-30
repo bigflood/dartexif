@@ -1,6 +1,5 @@
+import 'package:exif/src/tags_info.dart' show MakerTag, TagsBase;
 import 'package:sprintf/sprintf.dart' show sprintf;
-
-import 'tags_info.dart' show MakerTag, TagsBase;
 
 // Makernote (proprietary) tag definitions for Canon.
 // http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/Canon.html

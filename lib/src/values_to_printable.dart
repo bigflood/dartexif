@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'exif_types.dart';
-import 'field_types.dart';
-import 'reader.dart';
-import 'tags_info.dart';
+import 'package:exif/src/exif_types.dart';
+import 'package:exif/src/field_types.dart';
+import 'package:exif/src/reader.dart';
+import 'package:exif/src/tags_info.dart';
 
 class ValuesToPrintable {
   final String value;

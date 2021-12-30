@@ -1,4 +1,4 @@
-import 'tags_info.dart' show MakerTag, TagsBase;
+import 'package:exif/src/tags_info.dart' show MakerTag, TagsBase;
 
 // Makernote (proprietary) tag definitions for Apple iOS
 // Based on version 1.01 of ExifTool -> Image/ExifTool/Apple.pm

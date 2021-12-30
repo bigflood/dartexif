@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'file_interface.dart';
+import 'package:exif/src/file_interface.dart';
 
 class _FileReader implements FileReader {
   final RandomAccessFile file;

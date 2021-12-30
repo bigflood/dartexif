@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'file_interface.dart';
-import 'util.dart';
+import 'package:exif/src/file_interface.dart';
+import 'package:exif/src/util.dart';
 
 class HeicBox {
   final String name;
@@ -14,6 +14,7 @@ class HeicBox {
   int pos = 0;
   List compat = [];
   int baseOffset = 0;
+
   // this is full of boxes, but not in a predictable order.
   Map<String, HeicBox> subs = {};
   Map locs = {};
@@ -42,7 +43,7 @@ class HeicBox {
     /**
         ISO boxes come in 'old' and 'full' variants.
         The 'full' variant contains version and flags information.
-        */
+     */
     version = vflags >> 24;
     flags = vflags & 0x00ffffff;
   }

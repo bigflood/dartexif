@@ -1,8 +1,7 @@
+import 'package:exif/src/exif_types.dart';
+import 'package:exif/src/tags_info.dart' show MakerTag, MakerTagFunc, TagsBase;
+import 'package:exif/src/util.dart';
 import 'package:sprintf/sprintf.dart' show sprintf;
-
-import 'exif_types.dart';
-import 'tags_info.dart' show MakerTag, MakerTagFunc, TagsBase;
-import 'util.dart';
 
 // Makernote (proprietary) tag definitions for Nikon.
 
@@ -11,8 +10,10 @@ class MakerNoteNikon extends TagsBase {
   static Map<int, MakerTag> tagsOld = _buildTagsOld();
 
   static MakerTag _make(String name) => MakerTag.make(name);
+
   static MakerTag _withMap(String name, Map<int, String> map) =>
       MakerTag.makeWithMap(name, map);
+
   static MakerTag _withFunc(String name, MakerTagFunc func) =>
       MakerTag.makeWithFunc(name, func);
 

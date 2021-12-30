@@ -1,7 +1,6 @@
+import 'package:exif/src/tags_info.dart' show MakerTag, MakerTagFunc, TagsBase;
+import 'package:exif/src/util.dart';
 import 'package:sprintf/sprintf.dart' show sprintf;
-
-import 'tags_info.dart' show MakerTag, MakerTagFunc, TagsBase;
-import 'util.dart';
 
 // Makernote (proprietary) tag definitions for olympus.
 

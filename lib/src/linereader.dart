@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'file_interface.dart';
+import 'package:exif/src/file_interface.dart';
 
 class LineReader {
   FileReader file;

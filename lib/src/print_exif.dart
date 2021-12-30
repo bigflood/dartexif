@@ -1,5 +1,5 @@
-import 'file_interface.dart';
-import 'read_exif.dart';
+import 'package:exif/src/file_interface.dart';
+import 'package:exif/src/read_exif.dart';
 
 Future<String> printExifOfBytes(List<int> bytes,
     {String? stopTag,

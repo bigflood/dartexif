@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:html' as dart_html;
 import 'dart:typed_data';
 
-import 'file_interface.dart';
+import 'package:exif/src/file_interface.dart';
 
 Future<FileReader> createFileReaderFromFile(dynamic file) async {
   if (file is dart_html.File) {

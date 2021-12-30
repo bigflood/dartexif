@@ -1,14 +1,13 @@
 import 'dart:async';
 
 import 'package:exif/src/exif_decode_makernote.dart';
-
-import 'exif_types.dart';
-import 'exifheader.dart';
-import 'file_interface.dart';
-import 'heic.dart';
-import 'linereader.dart';
-import 'reader.dart';
-import 'util.dart';
+import 'package:exif/src/exif_types.dart';
+import 'package:exif/src/exifheader.dart';
+import 'package:exif/src/file_interface.dart';
+import 'package:exif/src/heic.dart';
+import 'package:exif/src/linereader.dart';
+import 'package:exif/src/reader.dart';
+import 'package:exif/src/util.dart';
 
 int _incrementBase(List<int> data, int base) {
   return (data[base + 2]) * 256 + (data[base + 3]) + 2;
