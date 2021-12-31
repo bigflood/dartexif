@@ -1,4 +1,4 @@
-## 3.1.0
+## 3.1.1
 
 - Fixed range error issue
 - Fixed some lint errors
