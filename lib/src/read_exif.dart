@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:exif/src/exif_decode_makernote.dart';
 import 'package:exif/src/exif_types.dart';
@@ -32,7 +33,7 @@ Future<Map<String, IfdTag>> readExifFromBytes(List<int> bytes,
 }
 
 /// Streaming version of [readExifFromBytes].
-Future<Map<String, IfdTag>> readExifFromFile(dynamic file,
+Future<Map<String, IfdTag>> readExifFromFile(File file,
     {String? stopTag,
     bool details = true,
     bool strict = false,
@@ -196,6 +197,9 @@ ReadParams _heicReadParams(FileReader f) {
   f.setPositionSync(0);
   final heic = HEICExifFinder(f);
   final res = heic.findExif();
+  if (res.length != 2) {
+    return ReadParams.error("Possibly corrupted heic data");
+  }
   final int offset = res[0];
   final Endian endian = Reader.endianOfByte(res[1]);
   return ReadParams(endian: endian, offset: offset);

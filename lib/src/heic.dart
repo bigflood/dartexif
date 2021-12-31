@@ -17,8 +17,8 @@ class HeicBox {
 
   // this is full of boxes, but not in a predictable order.
   Map<String, HeicBox> subs = {};
-  Map locs = {};
-  dynamic exifInfe;
+  Map<int, List<List<int>>> locs = {};
+  HeicBox? exifInfe;
   int itemId = 0;
   Uint8List? itemType;
   Uint8List? itemName;
@@ -204,7 +204,7 @@ class HEICExifFinder {
       ByteData.view(getBytes(2).buffer).getInt16(0);
       box.baseOffset = getInt(box.baseOffsetSize);
       final extentCount = ByteData.view(getBytes(2).buffer).getInt16(0);
-      final extent = [];
+      final List<List<int>> extent = [];
       for (var i = 0; i < extentCount; i += 1) {
         if ((box.version == 1 || box.version == 2) && box.indexSize > 0) {
           getInt(box.indexSize);
@@ -217,7 +217,7 @@ class HEICExifFinder {
     }
   }
 
-  Function? getParser(HeicBox box) {
+  void Function(HeicBox)? getParser(HeicBox box) {
     final defs = {
       'ftyp': _parseFtyp,
       'meta': _parseMeta,
@@ -229,7 +229,7 @@ class HEICExifFinder {
   }
 
   HeicBox parseBox(HeicBox box) {
-    final Function? probe = getParser(box);
+    final probe = getParser(box);
     if (probe == null) {
       throw Exception('Unhandled box');
     }
@@ -254,12 +254,16 @@ class HEICExifFinder {
     assert(listEqual(ftyp.majorBrand, Uint8List.fromList('heic'.codeUnits)));
     assert(ftyp.minorVersion == 0);
     final meta = expectParse('meta');
-    assert(meta.subs['iinf']!.exifInfe != null);
-    final itemId = meta.subs['iinf']!.exifInfe.itemId;
-    final extents = meta.subs['iloc']!.locs[itemId];
+    final itemId = meta.subs['iinf']?.exifInfe?.itemId;
+    if (itemId == null) {
+      return [];
+    }
+    final extents = meta.subs['iloc']?.locs[itemId];
     // we expect the Exif data to be in one piece.
-    assert(extents.length == 1);
-    final int pos = extents[0][0] as int;
+    if (extents == null || extents.length != 1) {
+      return [];
+    }
+    final int pos = extents[0][0];
     // looks like there's a kind of pseudo-box here.
     fileReader.setPositionSync(pos);
     // the payload of "Exif" item may be start with either
