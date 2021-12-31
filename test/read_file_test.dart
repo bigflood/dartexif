@@ -1,3 +1,4 @@
+@TestOn("vm")
 import "dart:io" as io;
 
 import 'package:exif/exif.dart';
