@@ -1,3 +1,9 @@
+## 3.1.0
+
+- Fixed range error issue
+- Fixed some lint errors
+- Changed file parameter type of readExifFromFile function from dynamic to io.File
+
 ## 3.0.1
 
 - add time offset tag names
