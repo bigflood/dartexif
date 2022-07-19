@@ -1,3 +1,7 @@
+## 3.1.2
+
+- Fix Bad state: No element while reading Exif
+
 ## 3.1.1
 
 - Fixed range error issue
