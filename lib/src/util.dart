@@ -34,7 +34,7 @@ void printf(String a, List b) => print(sprintf(a, b));
 String makeString(List<int> seq) {
   String s = String.fromCharCodes(seq.where((c) => 32 <= c && c < 256));
   if (s.isEmpty) {
-    if (seq.reduce(max) == 0) {
+    if (seq.isEmpty || seq.reduce(max) == 0) {
       return "";
     }
     s = seq.map((e) => e.toString()).join();
