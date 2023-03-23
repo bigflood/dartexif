@@ -1,3 +1,7 @@
+## 3.1.3
+
+- Bump dependency `sprintf` to `7.0.0`
+
 ## 3.1.2
 
 - Fix Bad state: No element while reading Exif
