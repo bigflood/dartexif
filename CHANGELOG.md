@@ -1,6 +1,7 @@
-## 3.1.3
+## 3.1.4
 
 - Bump dependency `sprintf` to `7.0.0`
+- Fix noop_primitive_operations
 
 ## 3.1.2
 
