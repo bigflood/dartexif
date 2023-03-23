@@ -17,7 +17,7 @@ dev_dependencies:
   build_runner: ^2.1.4
   http: ^0.13.1
   json_serializable: ^6.0.0
-  lint: ^1.5.3
+  lints: ^2.0.1
   path: ^1.8.0
   stream_channel: ^2.1.0
   test: ^1.16.8
