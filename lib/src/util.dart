@@ -44,8 +44,7 @@ String makeString(List<int> seq) {
 
 // Special version to deal with the code in the first 8 bytes of a user comment.
 // First 8 bytes gives coding system e.g. ASCII vs. JIS vs Unicode.
-String makeStringUc(List<int> _seq) {
-  var seq = _seq;
+String makeStringUc(List<int> seq) {
   if (seq.length <= 8) {
     return "";
   }

@@ -48,8 +48,7 @@ class Reader {
   }
 
   // Convert offset to string.
-  List<int> offsetToBytes(int _readOffset, int length) {
-    var readOffset = _readOffset;
+  List<int> offsetToBytes(int readOffset, int length) {
     final List<int> s = [];
     for (int dummy = 0; dummy < length; dummy++) {
       if (endian == Endian.little) {
@@ -237,8 +236,8 @@ class IfdReader {
     return const IfdNone();
   }
 
-  List<int> offsetToBytes(int _readOffset, int length) {
-    return file.offsetToBytes(_readOffset, length);
+  List<int> offsetToBytes(int readOffset, int length) {
+    return file.offsetToBytes(readOffset, length);
   }
 }
 
