@@ -183,7 +183,7 @@ class HEICExifFinder {
     } else if (box.version == 2) {
       box.itemCount = ByteData.view(getBytes(4).buffer).getInt32(0);
     } else {
-      throw Exception("Box version 2, ${box.version.toString()}");
+      throw Exception("Box version 2, ${box.version}");
     }
     box.locs = {};
     for (var i = 0; i < box.itemCount; i += 1) {
@@ -193,7 +193,7 @@ class HEICExifFinder {
       } else if (box.version == 2) {
         itemId = ByteData.view(getBytes(4).buffer).getInt32(0);
       } else {
-        throw Exception("Box version 2, ${box.version.toString()}");
+        throw Exception("Box version 2, ${box.version}");
       }
 
       if (box.version == 1 || box.version == 2) {
