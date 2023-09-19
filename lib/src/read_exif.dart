@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:exif/src/exif_decode_makernote.dart';
 import 'package:exif/src/exif_types.dart';
@@ -70,6 +71,8 @@ ExifData readExifFromFileReader(FileReader f,
     readParams = _heicReadParams(f);
   } else if (_isJpeg(header)) {
     readParams = _jpegReadParams(f);
+  } else if (_isPng(header)) {
+    readParams = _pngReadParams(f);
   } else {
     return ExifData.withWarning("File format not recognized.");
   }
@@ -192,6 +195,9 @@ bool _isHeic(List<int> header) =>
 
 bool _isJpeg(List<int> header) =>
     listRangeEqual(header, 0, 2, '\xFF\xD8'.codeUnits);
+
+bool _isPng(List<int> header) =>
+    listRangeEqual(header, 0, 8, '\x89PNG\r\n\x1a\n'.codeUnits);
 
 ReadParams _heicReadParams(FileReader f) {
   f.setPositionSync(0);
@@ -346,6 +352,29 @@ ReadParams _jpegReadParams(FileReader f) {
   }
 
   return ReadParams(endian: endian, offset: offset, fakeExif: fakeExif);
+}
+
+ReadParams _pngReadParams(FileReader f) {
+  f.setPositionSync(8);
+  while (true) {
+    final data = f.readSync(8);
+    final chunk = String.fromCharCodes(data.sublist(4, 8));
+
+    if (chunk.isEmpty || chunk == "IEND") {
+      break;
+    }
+    if (chunk == "eXIf") {
+      final offset = f.positionSync();
+      final endian = Reader.endianOfByte(f.readByteSync());
+      return ReadParams(endian: endian, offset: offset);
+    }
+
+    final chunkSize =
+        Int8List.fromList(data.sublist(0, 4)).buffer.asByteData().getInt32(0);
+    f.setPositionSync(f.positionSync() + chunkSize + 4);
+  }
+
+  return ReadParams.error("No EXIF information found");
 }
 
 ReadParams _tiffReadParams(FileReader f) {
