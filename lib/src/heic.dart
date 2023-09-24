@@ -13,7 +13,6 @@ class HeicBox {
   int after = 0;
   int pos = 0;
   List compat = [];
-  int baseOffset = 0;
 
   // this is full of boxes, but not in a predictable order.
   Map<String, HeicBox> subs = {};
@@ -202,7 +201,7 @@ class HEICExifFinder {
       }
       // ignore data_reference_index
       ByteData.view(getBytes(2).buffer).getInt16(0);
-      box.baseOffset = getInt(box.baseOffsetSize);
+      final baseOffset = getInt(box.baseOffsetSize);
       final extentCount = ByteData.view(getBytes(2).buffer).getInt16(0);
       final List<List<int>> extent = [];
       for (var i = 0; i < extentCount; i += 1) {
@@ -211,7 +210,7 @@ class HEICExifFinder {
         }
         final extentOffset = getInt(box.offsetSize);
         final extentLength = getInt(box.lengthSize);
-        extent.add([extentOffset, extentLength]);
+        extent.add([baseOffset + extentOffset, extentLength]);
       }
       box.locs[itemId] = extent;
     }
