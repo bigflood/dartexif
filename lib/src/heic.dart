@@ -23,20 +23,9 @@ class HeicBox {
   Uint8List? itemName;
   int itemProtectionIndex = 0;
   Uint8List? majorBrand;
-  int offsetSize = 0;
-  int lengthSize = 0;
-  int baseOffsetSize = 0;
-  int indexSize = 0;
   int flags = 0;
 
   HeicBox(this.name);
-
-  void setSizes(int offset, int length, int baseOffset, int index) {
-    offsetSize = offset;
-    lengthSize = length;
-    baseOffsetSize = baseOffset;
-    indexSize = index;
-  }
 
   void setFull(int vflags) {
     /**
@@ -176,7 +165,12 @@ class HEICExifFinder {
     box.setFull(ByteData.view(getBytes(4).buffer).getInt32(0));
     final size = getInt4x2();
     final size2 = getInt4x2();
-    box.setSizes(size[0], size[1], size2[0], size2[1]);
+
+    final offsetSize = size[0];
+    final lengthSize = size[1];
+    final baseOffsetSize = size2[0];
+    final indexSize = size2[1];
+
     if (box.version < 2) {
       box.itemCount = ByteData.view(getBytes(2).buffer).getInt16(0);
     } else if (box.version == 2) {
@@ -201,15 +195,15 @@ class HEICExifFinder {
       }
       // ignore data_reference_index
       ByteData.view(getBytes(2).buffer).getInt16(0);
-      final baseOffset = getInt(box.baseOffsetSize);
+      final baseOffset = getInt(baseOffsetSize);
       final extentCount = ByteData.view(getBytes(2).buffer).getInt16(0);
       final List<List<int>> extent = [];
       for (var i = 0; i < extentCount; i += 1) {
-        if ((box.version == 1 || box.version == 2) && box.indexSize > 0) {
-          getInt(box.indexSize);
+        if ((box.version == 1 || box.version == 2) && indexSize > 0) {
+          getInt(indexSize);
         }
-        final extentOffset = getInt(box.offsetSize);
-        final extentLength = getInt(box.lengthSize);
+        final extentOffset = getInt(offsetSize);
+        final extentLength = getInt(lengthSize);
         extent.add([baseOffset + extentOffset, extentLength]);
       }
       box.locs[itemId] = extent;
