@@ -245,7 +245,7 @@ class HEICExifFinder {
   List<int> findExif() {
     final ftyp = expectParse('ftyp');
     assert(listEqual(ftyp.majorBrand, Uint8List.fromList('heic'.codeUnits)) ||
-      listEqual(ftyp.majorBrand, Uint8List.fromList('avif'.codeUnits)));
+        listEqual(ftyp.majorBrand, Uint8List.fromList('avif'.codeUnits)));
     assert(ftyp.minorVersion == 0);
     final meta = expectParse('meta');
     final itemId = meta.subs['iinf']?.exifInfe?.itemId;
