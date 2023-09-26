@@ -1,5 +1,5 @@
 name: exif
-version: 3.2.0
+version: 3.2.1
 description: >-
   Decode Exif metadata from digital image files.
   Supported formats: tiff, jpeg, HEIC, PNG
