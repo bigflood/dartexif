@@ -1,3 +1,7 @@
+## 3.1.5
+
+- Add PNG Support
+
 ## 3.1.4
 
 - Bump dependency `sprintf` to `7.0.0`

@@ -1,8 +1,8 @@
 name: exif
-version: 3.1.4
+version: 3.1.5
 description: >-
   Decode Exif metadata from digital image files.
-  Supported formats: tiff, jpeg, HEIC
+  Supported formats: tiff, jpeg, HEIC, PNG
 homepage: https://www.github.com/bigflood/dartexif
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -23,4 +23,3 @@ dev_dependencies:
   test: ^1.16.8
 executables:
   print_exif:
-  
