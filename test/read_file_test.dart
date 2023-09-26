@@ -5,8 +5,16 @@ import 'package:exif/exif.dart';
 import "package:test/test.dart";
 
 void main() {
-  test("read file test", () async {
+  test("read heic file test", () async {
     const filename = "test/data/heic-test.heic";
+    final file = io.File(filename);
+    final output = tagsToString(await readExifFromFile(file));
+    final expected = await io.File("$filename.dump").readAsString();
+    expect(output, equals(expected.trim()));
+  });
+
+  test("read png file test", () async {
+    const filename = "test/data/png-test.png";
     final file = io.File(filename);
     final output = tagsToString(await readExifFromFile(file));
     final expected = await io.File("$filename.dump").readAsString();
@@ -20,7 +28,6 @@ void main() {
     final expected = await io.File("$filename.dump").readAsString();
     expect(output, equals(expected.trim()));
   });
-
 }
 
 String tagsToString(Map<String, IfdTag> tags) {

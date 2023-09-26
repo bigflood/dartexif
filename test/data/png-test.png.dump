@@ -1,0 +1,13 @@
+EXIF ComponentsConfiguration (Undefined): YCbCr
+EXIF ExifVersion (Undefined): 0232
+EXIF FlashPixVersion (Undefined): 0100
+EXIF UserComment (Undefined): exif test
+GPS GPSLatitude (Ratio): [44, 29, 76078/1397]
+GPS GPSLatitudeRef (ASCII): N
+GPS GPSLongitude (Ratio): [11, 19, 48947/1171]
+GPS GPSLongitudeRef (ASCII): E
+Image ExifOffset (Long): 88
+Image GPSInfo (Long): 160
+Image ImageDescription (ASCII): Flutter Dash
+Image ResolutionUnit (Short): Pixels/Inch
+Image YCbCrPositioning (Short): Centered
