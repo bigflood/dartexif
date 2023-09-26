@@ -67,7 +67,7 @@ ExifData readExifFromFileReader(FileReader f,
   final header = f.readSync(12);
   if (_isTiff(header)) {
     readParams = _tiffReadParams(f);
-  } else if (_isHeic(header)) {
+  } else if (_isHeic(header) || _isAvif(header)) {
     readParams = _heicReadParams(f);
   } else if (_isJpeg(header)) {
     readParams = _jpegReadParams(f);
@@ -192,6 +192,9 @@ bool _isTiff(List<int> header) =>
 
 bool _isHeic(List<int> header) =>
     listRangeEqual(header, 4, 12, 'ftypheic'.codeUnits);
+
+bool _isAvif(List<int> header) =>
+    listRangeEqual(header, 4, 12, 'ftypavif'.codeUnits);
 
 bool _isJpeg(List<int> header) =>
     listRangeEqual(header, 0, 2, '\xFF\xD8'.codeUnits);
