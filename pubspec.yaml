@@ -1,5 +1,5 @@
 name: exif
-version: 3.1.5
+version: 3.2.0
 description: >-
   Decode Exif metadata from digital image files.
   Supported formats: tiff, jpeg, HEIC, PNG
@@ -15,7 +15,7 @@ dependencies:
 dev_dependencies:
   archive: ^3.1.2
   build_runner: ^2.1.4
-  http: ^0.13.1
+  http: '>=1.0.0 <2.0.0'
   json_serializable: ^6.0.0
   lints: ^2.0.1
   path: ^1.8.0

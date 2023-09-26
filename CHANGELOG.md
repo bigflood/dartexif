@@ -1,5 +1,6 @@
-## 3.1.5
+## 3.2.0
 
+- Add AVIF Support
 - Add PNG Support
 
 ## 3.1.4
