@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:exif/src/exifheader.dart';
 import 'package:exif/src/field_types.dart';
 import 'package:exif/src/makernote_apple.dart';
