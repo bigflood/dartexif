@@ -1,0 +1,59 @@
+EXIF ApertureValue (Ratio): 4845/1918
+EXIF BrightnessValue (Signed Ratio): 7187/850
+EXIF ColorSpace (Short): Uncalibrated
+EXIF ComponentsConfiguration (Undefined): YCbCr
+EXIF CustomRendered (Short): 2
+EXIF DateTimeDigitized (ASCII): 2018:03:30 12:14:19
+EXIF DateTimeOriginal (ASCII): 2018:03:30 12:14:19
+EXIF ExifImageLength (Long): 180
+EXIF ExifImageWidth (Long): 240
+EXIF ExifVersion (Undefined): 0221
+EXIF ExposureBiasValue (Signed Ratio): 0
+EXIF ExposureMode (Short): Auto Exposure
+EXIF ExposureProgram (Short): Program Normal
+EXIF ExposureTime (Ratio): 1/209
+EXIF FNumber (Ratio): 12/5
+EXIF Flash (Short): Flash did not fire, compulsory flash mode
+EXIF FlashPixVersion (Undefined): 0100
+EXIF FocalLength (Ratio): 6
+EXIF FocalLengthIn35mmFilm (Short): 52
+EXIF ISOSpeedRatings (Short): 16
+EXIF LensMake (ASCII): Apple
+EXIF LensModel (ASCII): iPhone X back dual camera 6mm f/2.4
+EXIF LensSpecification (Ratio): [4, 6, 9/5, 12/5]
+EXIF MakerNote (Undefined): []
+EXIF MeteringMode (Short): Pattern
+EXIF SceneCaptureType (Short): Standard
+EXIF SceneType (Undefined): Directly Photographed
+EXIF SensingMethod (Short): One-chip color area
+EXIF ShutterSpeedValue (Signed Ratio): 7789/1011
+EXIF SubSecTimeDigitized (ASCII): 365
+EXIF SubSecTimeOriginal (ASCII): 365
+EXIF SubjectArea (Short): [2007, 1503, 2209, 1327]
+EXIF WhiteBalance (Short): Auto
+GPS GPSAltitude (Ratio): 6568/1433
+GPS GPSAltitudeRef (Byte): 0
+GPS GPSDate (ASCII): 2018:03:30
+GPS GPSDestBearing (Ratio): 21278/339
+GPS GPSDestBearingRef (ASCII): M
+GPS GPSImgDirection (Ratio): 21278/339
+GPS GPSImgDirectionRef (ASCII): M
+GPS GPSLatitude (Ratio): [37, 45, 907/25]
+GPS GPSLatitudeRef (ASCII): N
+GPS GPSLongitude (Ratio): [122, 30, 861/25]
+GPS GPSLongitudeRef (ASCII): W
+GPS GPSSpeed (Ratio): 5709/10354
+GPS GPSSpeedRef (ASCII): K
+GPS GPSTimeStamp (Ratio): [19, 14, 1813/100]
+GPS Tag 0x001F (Ratio): 6619/1103
+Image DateTime (ASCII): 2018:03:30 12:14:19
+Image ExifOffset (Long): 204
+Image GPSInfo (Long): 784
+Image Make (ASCII): Apple
+Image Model (ASCII): iPhone X
+Image Orientation (Short): Horizontal (normal)
+Image ResolutionUnit (Short): Pixels/Inch
+Image Software (ASCII): 12.0
+Image XResolution (Ratio): 127/5
+Image YCbCrPositioning (Short): Centered
+Image YResolution (Ratio): 127/5

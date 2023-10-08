@@ -73,6 +73,8 @@ ExifData readExifFromFileReader(FileReader f,
     readParams = _jpegReadParams(f);
   } else if (_isPng(header)) {
     readParams = _pngReadParams(f);
+  } else if (_isWebp(header)) {
+    readParams = _webpReadParams(f);
   } else {
     return ExifData.withWarning("File format not recognized.");
   }
@@ -201,6 +203,10 @@ bool _isJpeg(List<int> header) =>
 
 bool _isPng(List<int> header) =>
     listRangeEqual(header, 0, 8, '\x89PNG\r\n\x1a\n'.codeUnits);
+
+bool _isWebp(List<int> header) =>
+    listRangeEqual(header, 0, 4, 'RIFF'.codeUnits) &&
+    listRangeEqual(header, 8, 12, 'WEBP'.codeUnits);
 
 ReadParams _heicReadParams(FileReader f) {
   f.setPositionSync(0);
@@ -378,6 +384,52 @@ ReadParams _pngReadParams(FileReader f) {
   }
 
   return ReadParams.error("No EXIF information found");
+}
+
+ReadParams _webpReadParams(FileReader f) {
+  // Each RIFF box is a 4-byte ASCII tag, followed by a little-endian uint32
+  // length, and  finally that number of bytes of data. The file starts with an
+  // outer box with the tag 'RIFF', whose content is the file format ('WEBP')
+  // followed by a series of inner boxes. We need the inner 'EXIF' box.
+  //
+  // The outer box encapsulates the entire file, so we can safely skip forward
+  // to the first inner box.
+  f.setPositionSync(12);
+  while (true) {
+    final header = f.readSync(8);
+    if (header.isEmpty) {
+      return ReadParams.error("No EXIF information found");
+    } else if (header.length < 8) {
+      return ReadParams.error("Invalid RIFF encoding");
+    }
+
+    final tag = String.fromCharCodes(header.sublist(0, 4));
+    final length = Int8List.fromList(header.sublist(4, 8))
+        .buffer
+        .asByteData()
+        .getInt32(0, Endian.little);
+
+    // According to exiftool's RIFF documentation, WebP uses "EXIF" as tag
+    // name while other RIFF-based files tend to use "Exif".
+    if (tag == "EXIF") {
+      // Look for Exif\x00\x00, and skip it if present. The WebP implementation
+      // in Exiv2 also handles a \xFF\x01\xFF\xE1\x00\x00 prefix, but with no
+      // explanation or test file present, so we ignore that for now.
+      final exifHeader = f.readSync(6);
+      if (!listEqual(
+          exifHeader, Uint8List.fromList('Exif\x00\x00'.codeUnits))) {
+        // There was no Exif\x00\x00 marker, rewind
+        f.setPositionSync(f.positionSync() - exifHeader.length);
+      }
+
+      final offset = f.positionSync();
+      final endian = Reader.endianOfByte(f.readByteSync());
+      return ReadParams(endian: endian, offset: offset);
+    }
+
+    // Skip forward to the next box.
+    f.setPositionSync(f.positionSync() + length);
+  }
 }
 
 ReadParams _tiffReadParams(FileReader f) {
