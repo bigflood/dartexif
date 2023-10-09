@@ -1,3 +1,7 @@
+## 3.3.0
+
+- Add WebP Support
+
 ## 3.2.1
 
 - Add AVIF Support
