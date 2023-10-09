@@ -6,11 +6,6 @@ import 'package:exif/src/file_interface.dart';
 import 'package:exif/src/makernote_canon.dart';
 import 'package:exif/src/util.dart';
 
-enum Endian {
-  little,
-  big,
-}
-
 class Reader {
   FileReader file;
   int baseOffset;
