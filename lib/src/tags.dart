@@ -281,7 +281,7 @@ class StandardTags extends TagsBase {
       4: 'MultiSpot',
       5: 'Pattern',
       6: 'Partial',
-      255: 'other'
+      255: 'Other'
     }),
     0x9208: _withMap('LightSource', const {
       0: 'Unknown',
@@ -304,7 +304,7 @@ class StandardTags extends TagsBase {
       22: 'D75',
       23: 'D50',
       24: 'ISO studio tungsten',
-      255: 'other light source'
+      255: 'Other light source'
     }),
     0x9209: _withMap('Flash', const {
       0: 'Flash did not fire',
